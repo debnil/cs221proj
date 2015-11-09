@@ -22,7 +22,6 @@ def randomAgent(game):
                 not boundCheck(y2, 0, game.height):
                 continue
             else:
-                print "Chosen edge: (%d, %d, %d, %d)" % (x1, y1, x2, y2)
                 return edge
         except ValueError as e:
             print e
@@ -129,15 +128,18 @@ class DotBoxGame:
                 return score
 
         score = detectSquare(self.edges, edge)
-        print "Score changed by: %d" % score
+        if self.verbose >= 3:
+            print "Score changed by: %d" % score
         self.score += score * self.turn
         return score
 
     def playGame(self):
+        self.score = 0
+        self.edges = []
         while len(self.edges) != (self.width - 1) * self.height + \
                 (self.height - 1) * self.width:
+            playerNumber = 1 if (self.turn == 1) else 2
             if self.verbose >= 3:
-                playerNumber = 1 if (self.turn == 1) else 2
                 printDS.printGame(self)
                 print "Player %d: " % (playerNumber)
                 print "Score: %d" % self.score
@@ -152,11 +154,19 @@ class DotBoxGame:
             self.winner = -1
         else:
             self.winner = 1
-        if self.verbose >= 3:
+        if self.verbose >= 2:
             print "Winner is: ", 1 if self.winner > 0 else 2
             
-game = DotBoxGame(5, 3, randomAgent, randomAgent)
+game = DotBoxGame(5, 8, humanPlayer, randomAgent, verbose = 3)
 game.playGame()
+firstWins = 0
+for _ in range(1000):
+    game.playGame()
+    if (game.winner == 1):
+        firstWins += 1
+print "Win rate is %f" % (float(firstWins) / 1000)
+print "First won: %d times" % firstWins
+
 #printDS.printGrid(game)
 #game.addEdge(Edge(Vertex(0, 0), Vertex(1, 0)))
 #print ""
