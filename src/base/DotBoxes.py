@@ -33,10 +33,10 @@ def humanPlayer(game):
             edge = Edge(Vertex(x1, y1), Vertex(x2, y2))
             if edge in game.edges:
                 print "Edge already in use."
-            elif not boundCheck(x1, 0, game.width) or \
-                not boundCheck(x2, 0, game.width) or \
-                not boundCheck(y1, 0, game.height) or \
-                not boundCheck(y2, 0, game.height):
+            elif not boundCheck(x1, 0, game.width-1) or \
+                not boundCheck(x2, 0, game.width-1) or \
+                not boundCheck(y1, 0, game.height-1) or \
+                not boundCheck(y2, 0, game.height-1):
                 print "Edge not in bounds."
             else:
                 return edge
@@ -56,11 +56,6 @@ class DotBoxGame:
         self.width = width
         self.height = height
         self.grid = []
-        #for r in range(height):
-        #    row = []
-        #    for c in range(width):
-        #        row.append(Vertex(c, r))
-        #    self.grid.append(row)
         for x in range(width):
             col = []
             for y in range(height):
@@ -160,14 +155,14 @@ class DotBoxGame:
 game = DotBoxGame(5, 8, humanPlayer, randomAgent, verbose = 3)
 game.playGame()
 firstWins = 0
-for _ in range(1000):
-    game.playGame()
-    if (game.winner == 1):
-        firstWins += 1
-print "Win rate is %f" % (float(firstWins) / 1000)
-print "First won: %d times" % firstWins
+#for _ in range(1000):
+#    game.playGame()
+#    if (game.winner == 1):
+#        firstWins += 1
+#print "Win rate is %f" % (float(firstWins) / 1000)
+#print "First won: %d times" % firstWins
 
-#printDS.printGrid(game)
+printDS.printGrid(game)
 #game.addEdge(Edge(Vertex(0, 0), Vertex(1, 0)))
 #print ""
 #printDS.printGrid(game)
