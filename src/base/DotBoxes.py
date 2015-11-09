@@ -1,5 +1,31 @@
+import random
 import printDS
 from dotBoxesDS import *
+
+def randomAgent(game):
+    while True:
+        x1 = random.randint(0, game.width - 1)
+        y1 = random.randint(0, game.height - 1)
+        delta = random.choice([-1, 1])
+        which = random.choice([(0, delta), (delta, 0)])
+        x2 = which[0] + x1
+        y2 = which[1] + y1
+        try:
+            edge = Edge(Vertex(x1, y1), Vertex(x2, y2))
+            if x2 >= game.width or y2 >= game.height:
+                continue
+            elif edge in game.edges:
+                continue
+            elif not boundCheck(x1, 0, game.width) or \
+                not boundCheck(x2, 0, game.width) or \
+                not boundCheck(y1, 0, game.height) or \
+                not boundCheck(y2, 0, game.height):
+                continue
+            else:
+                print "Chosen edge: (%d, %d, %d, %d)" % (x1, y1, x2, y2)
+                return edge
+        except ValueError as e:
+            print e
 
 def humanPlayer(game):
     while True:
@@ -47,6 +73,7 @@ class DotBoxGame:
         self.score = 0
         self.turn = 1 # PlayerOne starts
         self.verbose = verbose
+        self.winner = 0
 
     # Returns the number of boxes made from adding this edge
     # src and dest must be vertices that are in bounds
@@ -121,8 +148,14 @@ class DotBoxGame:
             numBoxesCompleted = self.addEdge(edge)
             if (numBoxesCompleted == 0): # Switch turns if no boxes are completed
                 self.turn *= -1
+        if self.score < 0:
+            self.winner = -1
+        else:
+            self.winner = 1
+        if self.verbose >= 3:
+            print "Winner is: ", 1 if self.winner > 0 else 2
             
-game = DotBoxGame(5, 3)
+game = DotBoxGame(5, 3, randomAgent, randomAgent)
 game.playGame()
 #printDS.printGrid(game)
 #game.addEdge(Edge(Vertex(0, 0), Vertex(1, 0)))
