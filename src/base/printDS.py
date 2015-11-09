@@ -18,6 +18,9 @@ def printGame(game):
             for edge in currVertex.edges:
                 if edge.containsVertex(Vertex(currVertex.x, currVertex.y+1)):
                     edgeChar = "|"
-            print edgeChar, " ",
+            spacer = " "
+            if ((x, y) in game.squares):
+                spacer = "1" if game.squares[(x,y)] == 1 else "2"
+            print edgeChar, spacer,
         print ""
 

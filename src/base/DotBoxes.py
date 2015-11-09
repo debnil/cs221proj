@@ -68,6 +68,7 @@ class DotBoxGame:
         self.turn = 1 # PlayerOne starts
         self.verbose = verbose
         self.winner = 0
+        self.squares = {}
 
     # Returns the number of boxes made from adding this edge
     # src and dest must be vertices that are in bounds
@@ -86,7 +87,8 @@ class DotBoxGame:
         self.edges.append(edge)
 
         # Check if you've made a square
-        def detectSquare(edgeSet, edge):
+        def detectSquare(game, edge):
+            edgeSet = game.edges
             if (abs(edge.src.x - edge.dest.x) == 1): # Horizontal
                 score = 0
                 if (Edge(Vertex(edge.src.x, edge.src.y), \
@@ -96,6 +98,8 @@ class DotBoxGame:
                     Edge(Vertex(edge.src.x, edge.src.y - 1), \
                          Vertex(edge.dest.x, edge.dest.y - 1)) in edgeSet):
                         score += 1
+                        x = min(edge.src.x, edge.dest.x)
+                        game.squares[(x, edge.src.y - 1)] = game.turn
                 if (Edge(Vertex(edge.src.x, edge.src.y), \
                          Vertex(edge.src.x, edge.src.y + 1)) in edgeSet and \
                     Edge(Vertex(edge.dest.x, edge.dest.y), \
@@ -103,6 +107,8 @@ class DotBoxGame:
                     Edge(Vertex(edge.src.x, edge.src.y + 1), \
                          Vertex(edge.dest.x, edge.dest.y + 1)) in edgeSet):
                         score += 1
+                        x = min(edge.src.x, edge.dest.x)
+                        game.squares[(x, edge.src.y)] = game.turn
                 return score
             else: #Vertical line
                 score = 0
@@ -113,6 +119,8 @@ class DotBoxGame:
                     Edge(Vertex(edge.src.x - 1, edge.src.y), \
                          Vertex(edge.dest.x - 1, edge.dest.y)) in edgeSet):
                         score += 1
+                        y = min(edge.src.y, edge.dest.y)
+                        game.squares[(edge.src.x - 1, y)] = game.turn
                 if (Edge(Vertex(edge.src.x, edge.src.y), \
                          Vertex(edge.src.x + 1, edge.src.y)) in edgeSet and \
                     Edge(Vertex(edge.dest.x, edge.dest.y), \
@@ -120,9 +128,11 @@ class DotBoxGame:
                     Edge(Vertex(edge.src.x + 1, edge.src.y), \
                          Vertex(edge.dest.x + 1, edge.dest.y)) in edgeSet):
                         score += 1
+                        y = min(edge.src.y, edge.dest.y)
+                        game.squares[(edge.src.x, y)] = game.turn
                 return score
 
-        score = detectSquare(self.edges, edge)
+        score = detectSquare(self, edge)
         if self.verbose >= 3:
             print "Score changed by: %d" % score
         self.score += score * self.turn
@@ -145,14 +155,17 @@ class DotBoxGame:
             numBoxesCompleted = self.addEdge(edge)
             if (numBoxesCompleted == 0): # Switch turns if no boxes are completed
                 self.turn *= -1
+            pause = raw_input()
         if self.score < 0:
             self.winner = -1
         else:
             self.winner = 1
         if self.verbose >= 2:
             print "Winner is: ", 1 if self.winner > 0 else 2
+            print "Score: %d" % self.score
+            printDS.printGame(self)
             
-game = DotBoxGame(5, 8, humanPlayer, randomAgent, verbose = 3)
+game = DotBoxGame(3, 3, randomAgent, randomAgent, verbose = 3)
 game.playGame()
 firstWins = 0
 #for _ in range(1000):
@@ -162,7 +175,6 @@ firstWins = 0
 #print "Win rate is %f" % (float(firstWins) / 1000)
 #print "First won: %d times" % firstWins
 
-printDS.printGrid(game)
 #game.addEdge(Edge(Vertex(0, 0), Vertex(1, 0)))
 #print ""
 #printDS.printGrid(game)
