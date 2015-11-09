@@ -13,6 +13,11 @@ class Edge:
 
     # Returns true if the vertex is one of the endpoints of the edge
     def containsVertex(self, vertex):
-        if vertex == self.src or vertex == self.dest:
+        def equalVertex(first, second):
+            if first.x == second.x and first.y == second.y:
+                return True
+            return False
+
+        if equalVertex(self.src, vertex) or equalVertex(self.dest, vertex):
             return True
         return False
