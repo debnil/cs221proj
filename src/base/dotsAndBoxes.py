@@ -53,14 +53,15 @@ class DotBoxGameState:
     def getEdges(self):
         return self.edges
 
-    def generateSuccessor(self, edge):
+    # Generates a successor. Only updates drawing internals if updatePaint is True
+    def generateSuccessor(self, edge, updatePaint = True):
         other = self.deepCopy()
-        other.addEdge(edge)
+        other.addEdge(edge, updatePaint)
         return other
 
     # Adds an edge to the state and updates internals
     # Pass game for printing purposes
-    def addEdge(self, edge):
+    def addEdge(self, edge, updatePaint = True):
         self.edges.append(edge)
         self.moves.remove(edge)
 
@@ -77,7 +78,8 @@ class DotBoxGameState:
                          Vertex(edge.dest.x, edge.dest.y - 1)) in edgeSet):
                         score += 1
                         x = min(edge.src.x, edge.dest.x)
-                        game.squares[(x, edge.src.y - 1)] = game.state.getTurn()
+                        if updatePaint:
+                            game.squares[(x, edge.src.y - 1)] = game.state.getTurn()
                 if (Edge(Vertex(edge.src.x, edge.src.y), \
                          Vertex(edge.src.x, edge.src.y + 1)) in edgeSet and \
                     Edge(Vertex(edge.dest.x, edge.dest.y), \
@@ -86,7 +88,8 @@ class DotBoxGameState:
                          Vertex(edge.dest.x, edge.dest.y + 1)) in edgeSet):
                         score += 1
                         x = min(edge.src.x, edge.dest.x)
-                        game.squares[(x, edge.src.y)] = game.state.getTurn()
+                        if updatePaint:
+                            game.squares[(x, edge.src.y)] = game.state.getTurn()
                 return score
             else: #Vertical line
                 score = 0
@@ -98,7 +101,8 @@ class DotBoxGameState:
                          Vertex(edge.dest.x - 1, edge.dest.y)) in edgeSet):
                         score += 1
                         y = min(edge.src.y, edge.dest.y)
-                        game.squares[(edge.src.x - 1, y)] = game.state.getTurn()
+                        if updatePaint:
+                            game.squares[(edge.src.x - 1, y)] = game.state.getTurn()
                 if (Edge(Vertex(edge.src.x, edge.src.y), \
                          Vertex(edge.src.x + 1, edge.src.y)) in edgeSet and \
                     Edge(Vertex(edge.dest.x, edge.dest.y), \
@@ -107,7 +111,8 @@ class DotBoxGameState:
                          Vertex(edge.dest.x + 1, edge.dest.y)) in edgeSet):
                         score += 1
                         y = min(edge.src.y, edge.dest.y)
-                        game.squares[(edge.src.x, y)] = game.state.getTurn()
+                        if updatePaint:
+                            game.squares[(edge.src.x, y)] = game.state.getTurn()
                 return score
 
         score = detectSquare(self.game, edge)
@@ -121,6 +126,9 @@ class DotBoxGameState:
 
     def isEnd(self):
         return len(self.moves) == 0
+
+    def __str__(self):
+        return "Board: (%d, %d), Score: %d, Edges: %s, Moves: %s" % (self.width, self.height, self.score, str(self.edges), str(self.moves))
 
     """
     Allows two states to be compared.
@@ -207,8 +215,10 @@ class DotBoxGame:
 
         if self.state.getScore() < 0:
             self.winner = -1
-        else:
+        elif self.state.getScore() > 0:
             self.winner = 1
+        else: # Tie
+            self.winner = 0
         if self.verbose >= 2:
             print "Winner is: ", 1 if self.winner > 0 else 2
             print "Score: %d" % self.state.getScore()

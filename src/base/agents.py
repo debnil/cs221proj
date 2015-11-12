@@ -53,13 +53,14 @@ class HumanAgent(Agent):
 class MinimaxAgent(Agent):
     def __init__ (self, evaluationFn, depth, player):
         self.evalFn = evaluationFn
-        print self.evalFn
         self.depth = depth
         self.player = player #Player 1(1), Player 2(-1)
 
     def getAction(self, gameState):
         def V_opt(gameState, depth):
             if gameState.isEnd():
+                #print gameState
+                #print "I'm in an end state! :)"
                 score = gameState.getScore()
                 if score > 0:
                     sign = 1
@@ -71,15 +72,12 @@ class MinimaxAgent(Agent):
             elif (depth == 0): # Never evaluate with depth = 0 
                 return self.evalFn(self.player, gameState), None
             elif (gameState.turn == self.player): # Agent's turn
-                scoredActions = [(V_opt(gameState.generateSuccessor(move), depth)[0], \
-                                 move) for move in gameState.getValidMoves()]
-                #scoredActions = [(V_opt(gameState.generatePacmanSuccessor(action), \
-                #                 depth, playerIndex + 1)[0], action) \
-                #                 for action in gameState.getLegalPacmanActions()]
+                scoredActions = [(V_opt(gameState.generateSuccessor(move, False), \
+                                depth)[0], move) for move in gameState.getValidMoves()]
                 return max(scoredActions)
             else:
-                return min((V_opt(gameState.generateSuccessor(move), depth-1)[0], \
-                            move) for move in gameState.getValidMoves())
+                return min((V_opt(gameState.generateSuccessor(move, False), \
+                            depth-1)[0], move) for move in gameState.getValidMoves())
         score, action = V_opt(gameState, self.depth)
         print "Score: %f, Action: %s" % (score, action)
         return action
