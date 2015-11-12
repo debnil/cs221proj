@@ -41,12 +41,19 @@ class DotBoxGameState:
     def getEdges(self):
         return self.edges
 
+    def generateSuccessor(self, edge):
+        self.addEdge(edge)
+        return self
+
     def addEdge(self, edge):
         self.edges.append(edge)
         self.moves.remove(edge)
 
     def getValidMoves(self):
         return self.moves
+
+    def isEnd(self):
+        return len(self.moves) == 0
 
     """
     Allows two states to be compared.
@@ -166,8 +173,7 @@ class DotBoxGame:
             for x in range(self.state.getWidth()):
                 game.grid[x][y].edges = []
 
-        while len(self.state.getEdges()) != (self.state.getWidth() - 1) * self.state.getHeight() + \
-                (self.state.getHeight() - 1) * self.state.getWidth():
+        while not self.state.isEnd():
             playerNumber = 1 if (self.state.getTurn() == 1) else 2
             if self.verbose >= 3:
                 util.printGame(self)
@@ -181,6 +187,7 @@ class DotBoxGame:
             if (numBoxesCompleted == 0): # Switch turns if no boxes are completed
                 self.state.turn *= -1
             pause = raw_input()
+
         if self.state.getScore() < 0:
             self.winner = -1
         else:

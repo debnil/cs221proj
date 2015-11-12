@@ -43,9 +43,36 @@ def humanAgent(gameState):
         except ValueError as e:
             print e
 
-#class MinimaxAgent:
-#    def getState(self, game):
+class MinimaxAgent:
+    def __init__ (self, evaluationFn, depth, player):
+        self.evalFn = evaluationFn
+        self.depth = depth
+        self.player = player # 1 for player 1, -1 for player 2
 
-
-
+    def getAction(self, gameState):
+        def V_opt(gameState, depth):
+            if gameState.isEnd():
+                score = gameState.getScore()
+                if score > 0:
+                    sign = 1
+                elif score == 0:
+                    sign = 0
+                elif score < 0:
+                    sign = -1
+                return self.player * sign * float("inf"), None
+            elif (depth == 0): # Never evaluate with depth = 0 
+                return self.evaluationFunction(gameState), None
+            elif (gameState.turn == self.player): # Agent's turn
+                scoredActions = [(V_opt(gameState.generateSuccessor(move), depth)[0], \
+                                 action)  for action in gameState.getValidMoves()]
+                #scoredActions = [(V_opt(gameState.generatePacmanSuccessor(action), \
+                #                 depth, playerIndex + 1)[0], action) \
+                #                 for action in gameState.getLegalPacmanActions()]
+                return max(scoredActions)
+            else:
+                return min((V_opt(gameState.generateSuccessor(move), depth-1)[0], \
+                            action) for action in gameState.getValidMoves())
+        score, action = V_opt(gameState, self.depth)
+        print "Score: %d, Action: %s" % (score, action)
+        return action
 
