@@ -36,6 +36,10 @@ class Edge:
             return False
 
     def __eq__(self, other):
+        if other is None and self is not None:
+            return False
+        if self is not None and other is None:
+            return False
         if self.src == other.src and self.dest == other.dest:
             return True
         elif self.dest == other.src and self.src == other.dest:

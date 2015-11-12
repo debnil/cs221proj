@@ -233,11 +233,11 @@ class DotBoxGame:
 playerOne = agents.RandomAgent(1)
 print agents.evalState
 playerTwo = agents.MinimaxAgent(agents.evalState, 2, -1)
-game = DotBoxGame(2, 3, playerOne, playerTwo, verbose = 1)
+game = DotBoxGame(4, 5, playerOne, playerTwo, verbose = 3)
 game.playGame()
 firstWins = 0
 secondWins = 0
-NUM_TRIALS = 1000
+NUM_TRIALS = 100
 for i in range(NUM_TRIALS):
     game.playGame()
     if (i % (NUM_TRIALS/100) == 0):
@@ -246,5 +246,6 @@ for i in range(NUM_TRIALS):
         firstWins += 1
     if (game.winner == -1):
         secondWins += 1
-print "Win rate is %f" % (float(firstWins) / 1000)
+print "Win rate is %f%%" % (float(secondWins) / NUM_TRIALS * 100)
 print "First won: %d times" % firstWins
+print "Second won: %d times" % secondWins

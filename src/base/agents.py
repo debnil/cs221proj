@@ -57,7 +57,7 @@ class MinimaxAgent(Agent):
         self.player = player #Player 1(1), Player 2(-1)
 
     def getAction(self, gameState):
-        def V_opt(gameState, depth):
+        def V_opt(gameState, depth, alpha, beta): # Alpha-beta pruning
             if gameState.isEnd():
                 #print gameState
                 #print "I'm in an end state! :)"
@@ -68,28 +68,61 @@ class MinimaxAgent(Agent):
                     return 0, None
                 else:
                     return float("-inf"), None
-            elif (depth == 0): # Never evaluate with depth = 0 
+            elif (depth == 0):
                 return self.evalFn(self.player, gameState), None
             elif (gameState.turn == self.player): # Agent's turn
-                scoredActions = [(V_opt(gameState.generateSuccessor(move), \
-                                depth)[0], move) for move in gameState.getValidMoves()]
-                bestAction = max(scoredActions)
-                #print bestAction[1]
-                return bestAction
-            else:
-                scoredActions = [(V_opt(gameState.generateSuccessor(move), \
-                                  depth-1)[0], move, gameState.generateSuccessor(move)) for move in gameState.getValidMoves()] 
-                bestAction = min((V_opt(gameState.generateSuccessor(move), \
-                            depth-1)[0], move) for move in gameState.getValidMoves())
-                #print bestAction
-                #print "BEGIN"
-                #for score, move, state in scoredActions:
-                #    print "Score: ", score
-                #    util.printGame(state)
-                #print "END"
-                return bestAction
+                V = float("-inf"), None
+                for move in gameState.getValidMoves():
+                    successor = gameState.generateSuccessor(move)
+                    V = max(V, (V_opt(successor, depth, alpha, beta)[0], move))
+                    alpha = max(alpha, V[0]) # Update alpha
+                    if beta <= alpha: # Prune
+                        break
+                return V
+            else: # Opponent's turn
+                V = float("inf"), None
+                for move in gameState.getValidMoves():
+                    successor = gameState.generateSuccessor(move)
+                    V = min(V, (V_opt(successor, depth - 1, alpha, beta)[0], move))
+                    beta = min(beta, V[0]) # Update beta
+                    if beta <= alpha: #Prune
+                        break
+                return V
+        #def V_opt(gameState, depth):
+        #    if gameState.isEnd():
+        #        #print gameState
+        #        #print "I'm in an end state! :)"
+        #        score = gameState.getScore()
+        #        if score * self.player > 0:
+        #            return float("inf"), None
+        #        elif score == 0:
+        #            return 0, None
+        #        else:
+        #            return float("-inf"), None
+        #    elif (depth == 0): # Never evaluate with depth = 0 
+        #        return self.evalFn(self.player, gameState), None
+        #    elif (gameState.turn == self.player): # Agent's turn
+        #        scoredActions = [(V_opt(gameState.generateSuccessor(move), \
+        #                        depth)[0], move) for move in gameState.getValidMoves()]
+        #        bestAction = max(scoredActions)
+        #        #print bestAction[1]
+        #        return bestAction
+        #    else:
+        #        #scoredActions = [(V_opt(gameState.generateSuccessor(move), \
+        #        #                  depth-1)[0], move, gameState.generateSuccessor(move)) for move in gameState.getValidMoves()] 
+        #        bestAction = min((V_opt(gameState.generateSuccessor(move), \
+        #                    depth-1)[0], move) for move in gameState.getValidMoves())
+        #        #print bestAction
+        #        #print "BEGIN"
+        #        #for score, move, state in scoredActions:
+        #        #    print "Score: ", score
+        #        #    util.printGame(state)
+        #        #print "END"
+        #        return bestAction
 
-        score, action = V_opt(gameState, self.depth)
+        #score, action = V_opt(gameState, self.depth)
+        print "Searching %d deep" % (10/len(gameState.moves) + 2)
+        score, action = V_opt(gameState, 8/len(gameState.moves) + 1, float("-inf"), float("inf"))
         #print "Score: %f, Action: %s" % (score, action)
         return action
 
