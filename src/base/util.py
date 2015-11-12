@@ -1,4 +1,4 @@
-from dotBoxesDS import Vertex
+from graph import Vertex
 
 # Prints a DotBoxGame
 def printGame(game):
@@ -24,3 +24,7 @@ def printGame(game):
             print edgeChar, spacer,
         print ""
 
+def boundCheck(x, minBound, maxBound):
+    if (x < minBound or x > maxBound):
+        return False
+    return True
