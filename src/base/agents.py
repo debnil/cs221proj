@@ -62,25 +62,38 @@ class MinimaxAgent(Agent):
                 #print gameState
                 #print "I'm in an end state! :)"
                 score = gameState.getScore()
-                if score > 0:
-                    sign = 1
+                if score * self.player > 0:
+                    return float("inf"), None
                 elif score == 0:
-                    sign = 0
-                elif score < 0:
-                    sign = -1
-                return self.player * sign * float("inf"), None
+                    return 0, None
+                else:
+                    return float("-inf"), None
             elif (depth == 0): # Never evaluate with depth = 0 
                 return self.evalFn(self.player, gameState), None
             elif (gameState.turn == self.player): # Agent's turn
-                scoredActions = [(V_opt(gameState.generateSuccessor(move, False), \
+                scoredActions = [(V_opt(gameState.generateSuccessor(move), \
                                 depth)[0], move) for move in gameState.getValidMoves()]
-                return max(scoredActions)
+                bestAction = max(scoredActions)
+                #print bestAction[1]
+                return bestAction
             else:
-                return min((V_opt(gameState.generateSuccessor(move, False), \
+                scoredActions = [(V_opt(gameState.generateSuccessor(move), \
+                                  depth-1)[0], move, gameState.generateSuccessor(move)) for move in gameState.getValidMoves()] 
+                bestAction = min((V_opt(gameState.generateSuccessor(move), \
                             depth-1)[0], move) for move in gameState.getValidMoves())
+                #print bestAction
+                #print "BEGIN"
+                #for score, move, state in scoredActions:
+                #    print "Score: ", score
+                #    util.printGame(state)
+                #print "END"
+                return bestAction
+
         score, action = V_opt(gameState, self.depth)
-        print "Score: %f, Action: %s" % (score, action)
+        #print "Score: %f, Action: %s" % (score, action)
         return action
 
 def evalState(player, gameState):
+    #print util.printGame(gameState, True)
+    #print "Score: ", gameState.getScore() * player
     return gameState.getScore() * player # Positive if player is winning
