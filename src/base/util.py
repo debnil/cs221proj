@@ -2,8 +2,8 @@ from graph import Vertex
 
 # Prints a DotBoxGame
 def printGame(game):
-    for y in range(game.height):
-        for x in range(game.width): # Print the first line
+    for y in range(game.state.getHeight()):
+        for x in range(game.state.getWidth()): # Print the first line
             currVertex = game.grid[x][y]
             print "+",
             edgeChar = " "
@@ -12,7 +12,7 @@ def printGame(game):
                     edgeChar = "-"
             print edgeChar,
         print ""
-        for x in range(game.width):
+        for x in range(game.state.getWidth()):
             currVertex = game.grid[x][y]
             edgeChar = " "
             for edge in currVertex.edges:

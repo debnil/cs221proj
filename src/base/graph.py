@@ -45,3 +45,9 @@ class Edge:
 
     def __ne__(self, other):
         return not self == other
+
+    def __str__(self):
+        return "((%d, %d) <-> (%d, %d))" % (self.src.x, self.src.y, self.dest.x, self.dest.y)
+
+    def __repr__(self):
+        return self.__str__()
