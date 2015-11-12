@@ -81,6 +81,52 @@ class DotBoxGameState:
         #util.printGame(other.game)
         return other
 
+    # Check if you've made a square
+    def _detectSquare(self, edge):
+        edgeSet = self.edges
+        if (abs(edge.src.x - edge.dest.x) == 1): # Horizontal
+            score = 0
+            if (Edge(Vertex(edge.src.x, edge.src.y), \
+                     Vertex(edge.src.x, edge.src.y - 1)) in edgeSet and \
+                Edge(Vertex(edge.dest.x, edge.dest.y), \
+                     Vertex(edge.dest.x, edge.dest.y - 1)) in edgeSet and \
+                Edge(Vertex(edge.src.x, edge.src.y - 1), \
+                     Vertex(edge.dest.x, edge.dest.y - 1)) in edgeSet):
+                    score += 1
+                    x = min(edge.src.x, edge.dest.x)
+                    self.squares[(x, edge.src.y - 1)] = self.getTurn()
+            if (Edge(Vertex(edge.src.x, edge.src.y), \
+                     Vertex(edge.src.x, edge.src.y + 1)) in edgeSet and \
+                Edge(Vertex(edge.dest.x, edge.dest.y), \
+                     Vertex(edge.dest.x, edge.dest.y + 1)) in edgeSet and \
+                Edge(Vertex(edge.src.x, edge.src.y + 1), \
+                     Vertex(edge.dest.x, edge.dest.y + 1)) in edgeSet):
+                    score += 1
+                    x = min(edge.src.x, edge.dest.x)
+                    self.squares[(x, edge.src.y)] = self.getTurn()
+            return score
+        else: #Vertical line
+            score = 0
+            if (Edge(Vertex(edge.src.x, edge.src.y), \
+                     Vertex(edge.src.x - 1, edge.src.y)) in edgeSet and \
+                Edge(Vertex(edge.dest.x, edge.dest.y), \
+                     Vertex(edge.dest.x - 1, edge.dest.y)) in edgeSet and \
+                Edge(Vertex(edge.src.x - 1, edge.src.y), \
+                     Vertex(edge.dest.x - 1, edge.dest.y)) in edgeSet):
+                    score += 1
+                    y = min(edge.src.y, edge.dest.y)
+                    self.squares[(edge.src.x - 1, y)] = self.getTurn()
+            if (Edge(Vertex(edge.src.x, edge.src.y), \
+                     Vertex(edge.src.x + 1, edge.src.y)) in edgeSet and \
+                Edge(Vertex(edge.dest.x, edge.dest.y), \
+                     Vertex(edge.dest.x + 1, edge.dest.y)) in edgeSet and \
+                Edge(Vertex(edge.src.x + 1, edge.src.y), \
+                     Vertex(edge.dest.x + 1, edge.dest.y)) in edgeSet):
+                    score += 1
+                    y = min(edge.src.y, edge.dest.y)
+                    self.squares[(edge.src.x, y)] = self.getTurn()
+            return score
+
     # Adds an edge to the state and updates internals
     # Pass game for printing purposes
     def addEdge(self, edge):
@@ -90,53 +136,8 @@ class DotBoxGameState:
         self.grid[edge.src.x][edge.src.y].edges.append(edge)
         self.grid[edge.dest.x][edge.dest.y].edges.append(edge)
 
-        # Check if you've made a square
-        def detectSquare(edge):
-            edgeSet = self.edges
-            if (abs(edge.src.x - edge.dest.x) == 1): # Horizontal
-                score = 0
-                if (Edge(Vertex(edge.src.x, edge.src.y), \
-                         Vertex(edge.src.x, edge.src.y - 1)) in edgeSet and \
-                    Edge(Vertex(edge.dest.x, edge.dest.y), \
-                         Vertex(edge.dest.x, edge.dest.y - 1)) in edgeSet and \
-                    Edge(Vertex(edge.src.x, edge.src.y - 1), \
-                         Vertex(edge.dest.x, edge.dest.y - 1)) in edgeSet):
-                        score += 1
-                        x = min(edge.src.x, edge.dest.x)
-                        self.squares[(x, edge.src.y - 1)] = self.getTurn()
-                if (Edge(Vertex(edge.src.x, edge.src.y), \
-                         Vertex(edge.src.x, edge.src.y + 1)) in edgeSet and \
-                    Edge(Vertex(edge.dest.x, edge.dest.y), \
-                         Vertex(edge.dest.x, edge.dest.y + 1)) in edgeSet and \
-                    Edge(Vertex(edge.src.x, edge.src.y + 1), \
-                         Vertex(edge.dest.x, edge.dest.y + 1)) in edgeSet):
-                        score += 1
-                        x = min(edge.src.x, edge.dest.x)
-                        self.squares[(x, edge.src.y)] = self.getTurn()
-                return score
-            else: #Vertical line
-                score = 0
-                if (Edge(Vertex(edge.src.x, edge.src.y), \
-                         Vertex(edge.src.x - 1, edge.src.y)) in edgeSet and \
-                    Edge(Vertex(edge.dest.x, edge.dest.y), \
-                         Vertex(edge.dest.x - 1, edge.dest.y)) in edgeSet and \
-                    Edge(Vertex(edge.src.x - 1, edge.src.y), \
-                         Vertex(edge.dest.x - 1, edge.dest.y)) in edgeSet):
-                        score += 1
-                        y = min(edge.src.y, edge.dest.y)
-                        self.squares[(edge.src.x - 1, y)] = self.getTurn()
-                if (Edge(Vertex(edge.src.x, edge.src.y), \
-                         Vertex(edge.src.x + 1, edge.src.y)) in edgeSet and \
-                    Edge(Vertex(edge.dest.x, edge.dest.y), \
-                         Vertex(edge.dest.x + 1, edge.dest.y)) in edgeSet and \
-                    Edge(Vertex(edge.src.x + 1, edge.src.y), \
-                         Vertex(edge.dest.x + 1, edge.dest.y)) in edgeSet):
-                        score += 1
-                        y = min(edge.src.y, edge.dest.y)
-                        self.squares[(edge.src.x, y)] = self.getTurn()
-                return score
 
-        score = detectSquare(edge)
+        score = self._detectSquare(edge)
         self.score += score * self.getTurn()
         if score == 0: # No boxes made
             self.turn *= -1
@@ -144,6 +145,13 @@ class DotBoxGameState:
 
     def getValidMoves(self):
         return self.moves
+
+    def getCaptureMoves(self):
+        captures = []
+        for move in self.moves:
+            if self._detectSquare(move):
+                captures.append(move)
+        return captures
 
     def isEnd(self):
         return len(self.moves) == 0
@@ -230,7 +238,9 @@ class DotBoxGame:
             print "Score: %d" % self.state.getScore()
             util.printGame(self.state)
             
-playerOne = agents.RandomAgent(1)
+#playerOne = agents.RandomAgent(1)
+#playerOne = agents.HumanAgent(1)
+playerOne = agents.MinimaxAgent(agents.evalState, 2, 1)
 print agents.evalState
 playerTwo = agents.MinimaxAgent(agents.evalState, 2, -1)
 game = DotBoxGame(4, 5, playerOne, playerTwo, verbose = 3)

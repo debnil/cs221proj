@@ -72,18 +72,39 @@ class MinimaxAgent(Agent):
                 return self.evalFn(self.player, gameState), None
             elif (gameState.turn == self.player): # Agent's turn
                 V = float("-inf"), None
-                for move in gameState.getValidMoves():
+                # Only inspect captures if captures exist
+                captureMoves = gameState.getCaptureMoves() 
+                if len(captureMoves) == 0:
+                    moveSet = gameState.getValidMoves()
+                else:
+                    moveSet = captureMoves
+
+                for move in moveSet:
                     successor = gameState.generateSuccessor(move)
-                    V = max(V, (V_opt(successor, depth, alpha, beta)[0], move))
+                    score = V_opt(successor, depth, alpha, beta)
+                    if depth == 2:
+                        print "Calculated score: ", score
+                        util.printGame(successor, True)
+                    V = max(V, (score[0], move))
                     alpha = max(alpha, V[0]) # Update alpha
                     if beta <= alpha: # Prune
                         break
                 return V
             else: # Opponent's turn
                 V = float("inf"), None
-                for move in gameState.getValidMoves():
+                # Only inspect captures if captures exist
+                captureMoves = gameState.getCaptureMoves()
+                if len(captureMoves) == 0:
+                    moveSet = gameState.getValidMoves()
+                else:
+                    moveSet = captureMoves
+
+                for move in moveSet:
                     successor = gameState.generateSuccessor(move)
-                    V = min(V, (V_opt(successor, depth - 1, alpha, beta)[0], move))
+                    newDepth = depth - 1
+                    if successor.getTurn() != self.player: # Still opp turn
+                        newDepth = depth
+                    V = min(V, (V_opt(successor, newDepth, alpha, beta)[0], move))
                     beta = min(beta, V[0]) # Update beta
                     if beta <= alpha: #Prune
                         break
@@ -121,9 +142,9 @@ class MinimaxAgent(Agent):
         #        return bestAction
 
         #score, action = V_opt(gameState, self.depth)
-        print "Searching %d deep" % (10/len(gameState.moves) + 2)
-        score, action = V_opt(gameState, 8/len(gameState.moves) + 1, float("-inf"), float("inf"))
-        #print "Score: %f, Action: %s" % (score, action)
+        print "Searching %d deep" % (20/len(gameState.moves) + 2)
+        score, action = V_opt(gameState, 20/len(gameState.moves) + 2, float("-inf"), float("inf"))
+        print "Score: %f, Action: %s" % (score, action)
         return action
 
 def evalState(player, gameState):
