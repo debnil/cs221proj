@@ -101,10 +101,11 @@
   space of <math|2<rsup|40>>, and a naive search space of <math|40!> [1]. For
   this reason, it's one of the largest solved instances of this game. As a
   result, drawing the entire state space for a small game is extremely
-  difficult. In lieu of this, we will consider a portion of the moves in the
-  first two levels of the game tree for a <math|2\<times\>3> game, using a
-  minimax approach and alpha-beta pruning, to demonstrate how a pruning
-  approach can significantly reduce the number of states we must search.
+  difficult. In lieu of this, we will consider a portion of the moves in two
+  levels of the game tree for a <math|2\<times\>3> game, using a minimax
+  approach and alpha-beta pruning, to demonstrate how a pruning approach can
+  significantly reduce the number of states we must search. Specifically, we
+  will examine the end game,\ 
 
   <with|font-series|bold|<underline|Initial Results>>
 
