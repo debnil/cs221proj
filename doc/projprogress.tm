@@ -105,7 +105,8 @@
   levels of the game tree for a <math|2\<times\>3> game, using a minimax
   approach and alpha-beta pruning, to demonstrate how a pruning approach can
   significantly reduce the number of states we must search. Specifically, we
-  will examine the end game,\ 
+  will examine the end game, as it demonstrates the utility of severing
+  certain branches at a small, approachable level.
 
   <with|font-series|bold|<underline|Initial Results>>
 
