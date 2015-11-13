@@ -13,8 +13,22 @@ class DotBoxGameState:
                 if col+1 < self.width:
                     self.moves.append(Edge(Vertex(col, row), Vertex(col+1, row)))
 
-    def __init__(self, game, width, height, score, turn, edges, moves = None):
+    def __init__(self, game, width, height, score, turn, edges, moves = None, squares = None, grid = None):
         self.game = game # For paint purposes
+        if grid is None:
+            self.grid = []   # Also for paint
+            for x in range(width):
+                col = []
+                for y in range(height):
+                    col.append(Vertex(x, y))
+                self.grid.append(col)
+        else:
+            self.grid = grid
+
+        if squares is None:
+            self.squares = {}
+        else:
+            self.squares = squares
         self.width = width
         self.height = height
         self.score = score
@@ -29,11 +43,17 @@ class DotBoxGameState:
     def deepCopy(self):
         otherEdges = copy.deepcopy(self.edges)
         otherMoves = copy.deepcopy(self.moves)
+        otherSquares = copy.deepcopy(self.squares)
+        otherGrid = copy.deepcopy(self.grid)
         other = DotBoxGameState(self.game, self.width, self.height, self.score, self.turn, \
-                                otherEdges, otherMoves)
+                                otherEdges, otherMoves, otherSquares, otherGrid)
         return other
 
     def _restart(self):
+        for y in range(self.getHeight()):
+            for x in range(self.getWidth()):
+                self.grid[x][y].edges = []
+        self.squares = {}
         self.score = 0
         self.edges = []
         self._initializeMoves()
@@ -53,69 +73,75 @@ class DotBoxGameState:
     def getEdges(self):
         return self.edges
 
-    # Generates a successor. Only updates drawing internals if updatePaint is True
-    def generateSuccessor(self, edge, updatePaint = True):
+    # Generates a successor.
+    def generateSuccessor(self, edge):
         other = self.deepCopy()
-        other.addEdge(edge, updatePaint)
+        other.addEdge(edge)
+        #util.printGame(self.game)
+        #util.printGame(other.game)
         return other
+
+    # Check if you've made a square
+    def _detectSquare(self, edge, addPaint = True):
+        edgeSet = self.edges
+        if (abs(edge.src.x - edge.dest.x) == 1): # Horizontal
+            score = 0
+            if (Edge(Vertex(edge.src.x, edge.src.y), \
+                     Vertex(edge.src.x, edge.src.y - 1)) in edgeSet and \
+                Edge(Vertex(edge.dest.x, edge.dest.y), \
+                     Vertex(edge.dest.x, edge.dest.y - 1)) in edgeSet and \
+                Edge(Vertex(edge.src.x, edge.src.y - 1), \
+                     Vertex(edge.dest.x, edge.dest.y - 1)) in edgeSet):
+                    score += 1
+                    x = min(edge.src.x, edge.dest.x)
+                    if addPaint:
+                        self.squares[(x, edge.src.y - 1)] = self.getTurn()
+            if (Edge(Vertex(edge.src.x, edge.src.y), \
+                     Vertex(edge.src.x, edge.src.y + 1)) in edgeSet and \
+                Edge(Vertex(edge.dest.x, edge.dest.y), \
+                     Vertex(edge.dest.x, edge.dest.y + 1)) in edgeSet and \
+                Edge(Vertex(edge.src.x, edge.src.y + 1), \
+                     Vertex(edge.dest.x, edge.dest.y + 1)) in edgeSet):
+                    score += 1
+                    x = min(edge.src.x, edge.dest.x)
+                    if addPaint:
+                        self.squares[(x, edge.src.y)] = self.getTurn()
+            return score
+        else: #Vertical line
+            score = 0
+            if (Edge(Vertex(edge.src.x, edge.src.y), \
+                     Vertex(edge.src.x - 1, edge.src.y)) in edgeSet and \
+                Edge(Vertex(edge.dest.x, edge.dest.y), \
+                     Vertex(edge.dest.x - 1, edge.dest.y)) in edgeSet and \
+                Edge(Vertex(edge.src.x - 1, edge.src.y), \
+                     Vertex(edge.dest.x - 1, edge.dest.y)) in edgeSet):
+                    score += 1
+                    y = min(edge.src.y, edge.dest.y)
+                    if addPaint:
+                        self.squares[(edge.src.x - 1, y)] = self.getTurn()
+            if (Edge(Vertex(edge.src.x, edge.src.y), \
+                     Vertex(edge.src.x + 1, edge.src.y)) in edgeSet and \
+                Edge(Vertex(edge.dest.x, edge.dest.y), \
+                     Vertex(edge.dest.x + 1, edge.dest.y)) in edgeSet and \
+                Edge(Vertex(edge.src.x + 1, edge.src.y), \
+                     Vertex(edge.dest.x + 1, edge.dest.y)) in edgeSet):
+                    score += 1
+                    y = min(edge.src.y, edge.dest.y)
+                    if addPaint:
+                        self.squares[(edge.src.x, y)] = self.getTurn()
+            return score
 
     # Adds an edge to the state and updates internals
     # Pass game for printing purposes
-    def addEdge(self, edge, updatePaint = True):
+    def addEdge(self, edge):
         self.edges.append(edge)
         self.moves.remove(edge)
 
-        # Check if you've made a square
-        def detectSquare(game, edge):
-            edgeSet = game.state.getEdges()
-            if (abs(edge.src.x - edge.dest.x) == 1): # Horizontal
-                score = 0
-                if (Edge(Vertex(edge.src.x, edge.src.y), \
-                         Vertex(edge.src.x, edge.src.y - 1)) in edgeSet and \
-                    Edge(Vertex(edge.dest.x, edge.dest.y), \
-                         Vertex(edge.dest.x, edge.dest.y - 1)) in edgeSet and \
-                    Edge(Vertex(edge.src.x, edge.src.y - 1), \
-                         Vertex(edge.dest.x, edge.dest.y - 1)) in edgeSet):
-                        score += 1
-                        x = min(edge.src.x, edge.dest.x)
-                        if updatePaint:
-                            game.squares[(x, edge.src.y - 1)] = game.state.getTurn()
-                if (Edge(Vertex(edge.src.x, edge.src.y), \
-                         Vertex(edge.src.x, edge.src.y + 1)) in edgeSet and \
-                    Edge(Vertex(edge.dest.x, edge.dest.y), \
-                         Vertex(edge.dest.x, edge.dest.y + 1)) in edgeSet and \
-                    Edge(Vertex(edge.src.x, edge.src.y + 1), \
-                         Vertex(edge.dest.x, edge.dest.y + 1)) in edgeSet):
-                        score += 1
-                        x = min(edge.src.x, edge.dest.x)
-                        if updatePaint:
-                            game.squares[(x, edge.src.y)] = game.state.getTurn()
-                return score
-            else: #Vertical line
-                score = 0
-                if (Edge(Vertex(edge.src.x, edge.src.y), \
-                         Vertex(edge.src.x - 1, edge.src.y)) in edgeSet and \
-                    Edge(Vertex(edge.dest.x, edge.dest.y), \
-                         Vertex(edge.dest.x - 1, edge.dest.y)) in edgeSet and \
-                    Edge(Vertex(edge.src.x - 1, edge.src.y), \
-                         Vertex(edge.dest.x - 1, edge.dest.y)) in edgeSet):
-                        score += 1
-                        y = min(edge.src.y, edge.dest.y)
-                        if updatePaint:
-                            game.squares[(edge.src.x - 1, y)] = game.state.getTurn()
-                if (Edge(Vertex(edge.src.x, edge.src.y), \
-                         Vertex(edge.src.x + 1, edge.src.y)) in edgeSet and \
-                    Edge(Vertex(edge.dest.x, edge.dest.y), \
-                         Vertex(edge.dest.x + 1, edge.dest.y)) in edgeSet and \
-                    Edge(Vertex(edge.src.x + 1, edge.src.y), \
-                         Vertex(edge.dest.x + 1, edge.dest.y)) in edgeSet):
-                        score += 1
-                        y = min(edge.src.y, edge.dest.y)
-                        if updatePaint:
-                            game.squares[(edge.src.x, y)] = game.state.getTurn()
-                return score
+        self.grid[edge.src.x][edge.src.y].edges.append(edge)
+        self.grid[edge.dest.x][edge.dest.y].edges.append(edge)
 
-        score = detectSquare(self.game, edge)
+
+        score = self._detectSquare(edge)
         self.score += score * self.getTurn()
         if score == 0: # No boxes made
             self.turn *= -1
@@ -123,6 +149,21 @@ class DotBoxGameState:
 
     def getValidMoves(self):
         return self.moves
+
+    def getCaptureMoves(self):
+        captures = []
+        for move in self.moves:
+            if self._detectSquare(move, False):
+                captures.append(move)
+        return captures
+    
+    # Returns a list of moves that don't result in immediate capture
+    def getMovesWithoutCapture(self):
+        nonCaptures = []
+        for move in self.moves:
+            if not self._detectSquare(move, False):
+                nonCaptures.append(move)
+        return nonCaptures
 
     def isEnd(self):
         return len(self.moves) == 0
@@ -155,12 +196,6 @@ class DotBoxGame:
     # | | << This is a 1x1 grid
     # +-+
     def __init__(self, width, height, playerOneAgent, playerTwoAgent, verbose = 3):
-        self.grid = []
-        for x in range(width):
-            col = []
-            for y in range(height):
-                col.append(Vertex(x, y))
-            self.grid.append(col)
         self.playerOneAgent = playerOneAgent
         self.playerTwoAgent = playerTwoAgent
         self.state = DotBoxGameState(game = self, \
@@ -185,22 +220,16 @@ class DotBoxGame:
            not util.boundCheck(dest.y, 0, self.state.getHeight()):
            raise ValueError("((%d, %d), (%d, %d)) is not in bounds"  \
                   % (src.x, src.y, dest.x, dest.y))
-        self.grid[src.x][src.y].edges.append(edge)
-        self.grid[dest.x][dest.y].edges.append(edge)
         self.state = self.state.generateSuccessor(edge)
 
     def playGame(self):
         # reinitialize all of the internal states
         self.state._restart()
-        self.squares = {}
-        for y in range(self.state.getHeight()):
-            for x in range(self.state.getWidth()):
-                game.grid[x][y].edges = []
 
         while not self.state.isEnd():
             playerNumber = 1 if (self.state.getTurn() == 1) else 2
             if self.verbose >= 3:
-                util.printGame(self)
+                util.printGame(self.state)
                 print "Player %d: " % (playerNumber)
                 print "Score: %d" % self.state.getScore()
             if (playerNumber == 1):
@@ -208,10 +237,7 @@ class DotBoxGame:
             else: 
                 edge = self.playerTwoAgent.getAction(self.state)
             self.addEdge(edge)
-            #numBoxesCompleted = self.addEdge(edge)
-            #if (numBoxesCompleted == 0): # Switch turns if no boxes are completed
-            #    self.state.turn *= -1
-            pause = raw_input()
+            #pause = raw_input()
 
         if self.state.getScore() < 0:
             self.winner = -1
@@ -222,17 +248,26 @@ class DotBoxGame:
         if self.verbose >= 2:
             print "Winner is: ", 1 if self.winner > 0 else 2
             print "Score: %d" % self.state.getScore()
-            util.printGame(self)
+            util.printGame(self.state)
             
-playerOne = agents.RandomAgent(1)
+#playerOne = agents.RandomAgent(1)
+#playerOne = agents.HumanAgent(1)
+playerOne = agents.MinimaxAgent(agents.evalState, 1, 1)
 print agents.evalState
-playerTwo = agents.MinimaxAgent(agents.evalState, 1, -1)
-game = DotBoxGame(3, 4, playerOne, playerTwo, verbose = 3)
+playerTwo = agents.MinimaxAgent(agents.evalState, 2, -1, 3)
+game = DotBoxGame(4, 5, playerOne, playerTwo, verbose = 3)
 game.playGame()
 firstWins = 0
-for _ in range(1000):
+secondWins = 0
+NUM_TRIALS = 10
+for i in range(NUM_TRIALS):
     game.playGame()
+    if (i % (NUM_TRIALS/10) == 0):
+        print "%d%% finished." % (float(i)/NUM_TRIALS * 100)
     if (game.winner == 1):
         firstWins += 1
-print "Win rate is %f" % (float(firstWins) / 1000)
+    if (game.winner == -1):
+        secondWins += 1
+print "Win rate is %f%%" % (float(secondWins) / NUM_TRIALS * 100)
 print "First won: %d times" % firstWins
+print "Second won: %d times" % secondWins
