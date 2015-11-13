@@ -155,7 +155,7 @@
 
   Thus far, we have implemented minimax without alpha-beta pruning and
   capable of arbitrary search depth; in the interest of speed, we have only
-  tested with search depth 1. We have not utilized Monte Carlo or TD learning
+  tested with search depth 2. We have not utilized Monte Carlo or TD learning
   yet. We have only tested our algorithm rigorously against a random agent
   due to insufficient time to test against a human player. On all dimensions
   up to <math|4\<times\>4>, our approach is winning the game with 98%
