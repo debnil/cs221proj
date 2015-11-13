@@ -256,7 +256,6 @@ class DotBoxGame:
 #playerOne = agents.RandomAgent(1)
 #playerOne = agents.HumanAgent(1)
 playerOne = agents.MinimaxAgent(agents.evalState, 1, 1)
-print agents.evalState
 playerTwo = agents.MinimaxAgent(agents.evalState, 2, -1, verbose = 1)
 game = DotBoxGame(4, 5, playerOne, playerTwo, verbose = 3)
 game.playGame()
