@@ -107,10 +107,11 @@
   Another optimization that we will make is to use an opening book. This will
   sacrifice some of the strength of the agent since it will no longer search
   during the opening, but it will allow the agent to move more quickly in the
-  opening, which is the slowest period, since in an m x n grid, there are
-  (n(m-1) * m(n-1))! possible move sequences. Finally, we will utilize symmetry on
-  the board in order to decrease the number of states that must be searched.
-  Symmetry can reduce the search space by a factor of four [1]
+  opening, which is the slowest period, since in an <math|m \<times\> n>
+  grid, there are <math|(n(m-1) * m(n-1))>! possible move sequences. Finally,
+  we will utilize symmetry on the board in order to decrease the number of
+  states that must be searched. Symmetry can reduce the search space by a
+  factor of four [1].
 
   We will check our algorithm's efficacy against three classes of metrics.
   The first, a purely random agent, just arbitrarily draws edges. A human can
@@ -135,11 +136,20 @@
   result, drawing the entire state space for a small game is extremely
   difficult. In lieu of this, we will consider a portion of the moves in two
   levels of the game tree for a <math|2\<times\>3> game, using a minimax
-  approach and alpha-beta pruning, to demonstrate how a pruning approach can
-  significantly reduce the number of states we must search. Specifically, we
-  will examine the first two moves; a sample opening sequence of the game is
-  shown in Fig. 2 in the Appendix. Here, both player 1 and player 2 are
-  minimax agents operating with a lookahead of 2 levels.\ 
+  approach, to demonstrate how the game-playing agent makes decisions.
+  Specifically, we will examine the first two moves; a sample opening
+  sequence of the game is shown in Fig. 2 in the Appendix. Here, both player
+  1 and player 2 are minimax agents operating with a lookahead of 2 levels.
+  As there is no learned evaluation function as of yet, the temporary
+  evaluation function is simply the score, which is 0 for all moves of depth
+  1. Consequently, player 1 draws an edge at random. Similarly, Player 2
+  looks 2 levels deep and sees a score of 0 for any subsequent action.
+  Therefore, she also draws an edge at random. The addition of a learned
+  evaluation function will add intermediate utilities to these states and
+  therefore eliminate the total randomness in the beginning game. However,
+  the general principle of minimax is common to both the assumed zero value
+  and the intermediate utility, and this example illustrates how each agent
+  applies that technique to drawing its initial edges.
 
   <with|font-series|bold|<underline|Initial Results>>
 
