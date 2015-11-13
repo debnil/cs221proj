@@ -153,15 +153,18 @@ class DotBoxGameState:
     def getCaptureMoves(self):
         captures = []
         for move in self.moves:
-            if self._detectSquare(move, False):
+            if self._detectSquare(move, False) > 0:
                 captures.append(move)
         return captures
     
     # Returns a list of moves that don't result in immediate capture
     def getMovesWithoutCapture(self):
+        if len(self.getCaptureMoves()) != 0:
+            return []
         nonCaptures = []
         for move in self.moves:
-            if not self._detectSquare(move, False):
+            other = self.generateSuccessor(move)
+            if len(other.getCaptureMoves()) == 0:
                 nonCaptures.append(move)
         return nonCaptures
 
@@ -253,9 +256,8 @@ class DotBoxGame:
 #playerOne = agents.RandomAgent(1)
 #playerOne = agents.HumanAgent(1)
 playerOne = agents.MinimaxAgent(agents.evalState, 1, 1)
-print agents.evalState
-playerTwo = agents.MinimaxAgent(agents.evalState, 2, -1, 0)
-game = DotBoxGame(2, 3, playerOne, playerTwo, verbose = 3)
+playerTwo = agents.MinimaxAgent(agents.evalState, 2, -1, verbose = 1)
+game = DotBoxGame(4, 5, playerOne, playerTwo, verbose = 3)
 game.playGame()
 firstWins = 0
 secondWins = 0
