@@ -103,6 +103,14 @@
   evaluation metric, this second case appears rarely, since it is rarely optimal
   to sacrifice four boxes on a 4x3 grid.
 
+  Another optimization that we will make is to use an opening book. This will
+  sacrifice some of the strength of the agent since it will no longer search
+  during the opening, but it will allow the agent to move more quickly in the
+  opening, which is the slowest period, since in an m x n grid, there are
+  (n(m-1) * m(n-1))! possible move sequences. Finally, we will utilize symmetry on
+  the board in order to decrease the number of states that must be searched.
+  Symmetry can reduce the search space by a factor of four [1]
+
   We will check our algorithm's efficacy against three classes of metrics.
   The first, a purely random agent, just arbitrarily draws edges. A human can
   beat this agent, so we expect even a rudimentary AI to perform excellently.
@@ -137,7 +145,7 @@
 
   Thus far, we have implemented minimax without alpha-beta pruning and
   capable of arbitrary search depth; in the interest of speed, we have only
-  tested with search depth 1. We have not utilized Monte Carlo or TD learning
+  tested with search depth 2. We have not utilized Monte Carlo or TD learning
   yet. We have only tested our algorithm rigorously against a random agent
   due to insufficient time to test against a human player. On all dimensions
   up to <math|4\<times\>4>, our approach is winning the game with 98%
