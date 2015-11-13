@@ -82,7 +82,7 @@ class DotBoxGameState:
         return other
 
     # Check if you've made a square
-    def _detectSquare(self, edge):
+    def _detectSquare(self, edge, addPaint = True):
         edgeSet = self.edges
         if (abs(edge.src.x - edge.dest.x) == 1): # Horizontal
             score = 0
@@ -94,7 +94,8 @@ class DotBoxGameState:
                      Vertex(edge.dest.x, edge.dest.y - 1)) in edgeSet):
                     score += 1
                     x = min(edge.src.x, edge.dest.x)
-                    self.squares[(x, edge.src.y - 1)] = self.getTurn()
+                    if addPaint:
+                        self.squares[(x, edge.src.y - 1)] = self.getTurn()
             if (Edge(Vertex(edge.src.x, edge.src.y), \
                      Vertex(edge.src.x, edge.src.y + 1)) in edgeSet and \
                 Edge(Vertex(edge.dest.x, edge.dest.y), \
@@ -103,7 +104,8 @@ class DotBoxGameState:
                      Vertex(edge.dest.x, edge.dest.y + 1)) in edgeSet):
                     score += 1
                     x = min(edge.src.x, edge.dest.x)
-                    self.squares[(x, edge.src.y)] = self.getTurn()
+                    if addPaint:
+                        self.squares[(x, edge.src.y)] = self.getTurn()
             return score
         else: #Vertical line
             score = 0
@@ -115,7 +117,8 @@ class DotBoxGameState:
                      Vertex(edge.dest.x - 1, edge.dest.y)) in edgeSet):
                     score += 1
                     y = min(edge.src.y, edge.dest.y)
-                    self.squares[(edge.src.x - 1, y)] = self.getTurn()
+                    if addPaint:
+                        self.squares[(edge.src.x - 1, y)] = self.getTurn()
             if (Edge(Vertex(edge.src.x, edge.src.y), \
                      Vertex(edge.src.x + 1, edge.src.y)) in edgeSet and \
                 Edge(Vertex(edge.dest.x, edge.dest.y), \
@@ -124,7 +127,8 @@ class DotBoxGameState:
                      Vertex(edge.dest.x + 1, edge.dest.y)) in edgeSet):
                     score += 1
                     y = min(edge.src.y, edge.dest.y)
-                    self.squares[(edge.src.x, y)] = self.getTurn()
+                    if addPaint:
+                        self.squares[(edge.src.x, y)] = self.getTurn()
             return score
 
     # Adds an edge to the state and updates internals
@@ -149,9 +153,17 @@ class DotBoxGameState:
     def getCaptureMoves(self):
         captures = []
         for move in self.moves:
-            if self._detectSquare(move):
+            if self._detectSquare(move, False):
                 captures.append(move)
         return captures
+    
+    # Returns a list of moves that don't result in immediate capture
+    def getMovesWithoutCapture(self):
+        nonCaptures = []
+        for move in self.moves:
+            if not self._detectSquare(move, False):
+                nonCaptures.append(move)
+        return nonCaptures
 
     def isEnd(self):
         return len(self.moves) == 0
@@ -240,17 +252,17 @@ class DotBoxGame:
             
 #playerOne = agents.RandomAgent(1)
 #playerOne = agents.HumanAgent(1)
-playerOne = agents.MinimaxAgent(agents.evalState, 2, 1)
+playerOne = agents.MinimaxAgent(agents.evalState, 1, 1)
 print agents.evalState
-playerTwo = agents.MinimaxAgent(agents.evalState, 2, -1)
+playerTwo = agents.MinimaxAgent(agents.evalState, 2, -1, 3)
 game = DotBoxGame(4, 5, playerOne, playerTwo, verbose = 3)
 game.playGame()
 firstWins = 0
 secondWins = 0
-NUM_TRIALS = 100
+NUM_TRIALS = 10
 for i in range(NUM_TRIALS):
     game.playGame()
-    if (i % (NUM_TRIALS/100) == 0):
+    if (i % (NUM_TRIALS/10) == 0):
         print "%d%% finished." % (float(i)/NUM_TRIALS * 100)
     if (game.winner == 1):
         firstWins += 1

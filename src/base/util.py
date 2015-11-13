@@ -1,10 +1,13 @@
 from graph import Vertex
 
 # Prints a DotBoxGame
-def printGame(gameState, tab = False):
+def printGame(gameState, numTab = 0):
+    for _ in range(numTab):
+        print "\t",
+    print "Turn: %d" % (gameState.getTurn())
     for y in range(gameState.getHeight()):
-        if tab:
-            print "\t\t",
+        for _ in range(numTab):
+            print "\t",
         for x in range(gameState.getWidth()): # Print the first line
             currVertex = gameState.grid[x][y]
             print "+",
@@ -14,8 +17,8 @@ def printGame(gameState, tab = False):
                     edgeChar = "-"
             print edgeChar,
         print ""
-        if tab:
-            print "\t\t",
+        for _ in range(numTab):
+            print "\t",
         for x in range(gameState.getWidth()):
             currVertex = gameState.grid[x][y]
             edgeChar = " "
