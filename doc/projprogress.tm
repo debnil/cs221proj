@@ -77,19 +77,48 @@
   <math|\<b-up-w\>> of the evaluation function from this data. A large
   quantity of simulations will help us learn effective weights. In turn, we
   can use the evaluation function to help our agent quickly compute the best
-  potential move at each step, vastly improve its ability to traverse the
-  game space, and potentially win the game.
+  potential action at each state, vastly improve its ability to traverse the
+  game space, and increase its probability of winning the game.
+
+  We will check our algorithm's efficacy against three classes of metrics.
+  The first, a purely random agent, just arbitrarily draws edges. A human can
+  beat this agent, so we expect even a rudimentary AI to perform excellently.
+  The second is a human agent. While able to think strategically, a human
+  does not have the ability to look ahead that a game-playing agent does. As
+  such, we expect our AI agent, with some look-ahead, to consistently defeat
+  a human. The final is playing against another game-playing agent, namely
+  Dabble. Though successful, it does not utilize the minimax/TD learning
+  approach, so we will iterate upon our approach until we can defeat this
+  game. If we cannot, then it seems to indicate that the approach Dabble
+  utilizes is preferable to ours for navigating this particular game's
+  solutions. \ 
 
   <with|font-series|bold|<underline|Example>>
 
   We will provide a short example of our desired approach. Here, it's
-  important to note that even a small game has\ 
+  important to note that even a small game has a massive state space. For
+  instance, while small, the <math|4\<times\>4> game has 40 edges, a state
+  space of <math|2<rsup|40>>, and a naive search space of <math|40!> [1]. For
+  this reason, it's one of the largest solved instances of this game. As a
+  result, drawing the entire state space for a small game is extremely
+  difficult. In lieu of this, we will consider a portion of the moves in the
+  first two levels of the game tree for a <math|2\<times\>3> game, using a
+  minimax approach and alpha-beta pruning, to demonstrate how a pruning
+  approach can significantly reduce the number of states we must search.
 
   <with|font-series|bold|<underline|Initial Results>>
 
   Thus far, we have implemented minimax without alpha-beta pruning and
   capable of arbitrary search depth; in the interest of speed, we have only
-  tested with search depth 1.\ 
+  tested with search depth 1. We have not utilized Monte Carlo or TD learning
+  yet. We have only tested our algorithm rigorously against a random agent
+  due to insufficient time to test against a human player. On all dimensions
+  up to <math|4\<times\>4>, our approach is winning the game with 98%
+  probability. Thus, we have seen that at lower dimensions, which have been
+  analytically solved, our rudimentary algorithm is performing very well even
+  without significant lookahead or pruning of the state space. Our next steps
+  will be to test our game against human players, implement TD learning, and
+  finally play it against Dabble.
 
   <with|font-series|bold|<underline|Conclusion>>
 
@@ -98,11 +127,11 @@
   been analytically solved at lower dimensions by alternative game-playing
   techniques. As such, deeper study of it using principles from class serve
   as an interesting endeavour in game playing strategy at large. In
-  particular, our work to this point has truly emphasiezd the symbiotic
+  particular, our work to this point has truly emphasized the symbiotic
   relationship of search and learning discussed in lecture. The computational
   intractability of searching the huge state space of Dots and Boxes forced
-  us to utilize an evaluation function; but learning such a function
-  necessitated searching enough possible futures to model the game's likely
+  us to utilize an evaluation function; but learning such a function will
+  require searching enough possible futures to model the game's likely
   outcome.
 
   <with|font-series|bold|<underline|References>>
