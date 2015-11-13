@@ -254,8 +254,8 @@ class DotBoxGame:
 #playerOne = agents.HumanAgent(1)
 playerOne = agents.MinimaxAgent(agents.evalState, 1, 1)
 print agents.evalState
-playerTwo = agents.MinimaxAgent(agents.evalState, 2, -1, 3)
-game = DotBoxGame(4, 5, playerOne, playerTwo, verbose = 3)
+playerTwo = agents.MinimaxAgent(agents.evalState, 2, -1, 0)
+game = DotBoxGame(2, 3, playerOne, playerTwo, verbose = 3)
 game.playGame()
 firstWins = 0
 secondWins = 0

@@ -89,19 +89,20 @@
   potential action at each state, vastly improve its ability to traverse the
   game space, and increase its probability of winning the game.
 
-  On top of optimizations for general zero-sum games, we also make use of several
-  algorithmic optimizations specific to Dots and Boxes. First, there are a couple
-  chain structures that we can take advantage of displayed in the figure below.
-  The chain labeled A is called a half-opened chain, since it is open only at one
-  end. With half open chains, there are only two possible optimal moves -- to either
-  complete each box in the chain or to complete all but two boxes, leaving the two
-  boxes incomplete for the next player to take in order to maintain control over the game.
-  The chain labeled B is called a closed chain. With closed chains, there are again
-  only two possible optimal move sequences. One possible move sequence is to again
-  complete all of the boxes. The other possible move sequence is to complete all
-  but four boxes, sacrificing those to the opponent to maintain control. In our
-  evaluation metric, this second case appears rarely, since it is rarely optimal
-  to sacrifice four boxes on a 4x3 grid.
+  On top of optimizations for general zero-sum games, we also make use of
+  several algorithmic optimizations specific to Dots and Boxes. First, there
+  are a couple chain structures that we can take advantage of displayed in
+  Figure 1 in Appendix. The chain labeled A is called a half-opened chain,
+  since it is open only at one end. With half open chains, there are only two
+  possible optimal moves -- to either complete each box in the chain or to
+  complete all but two boxes, leaving the two boxes incomplete for the next
+  player to take in order to maintain control over the game. The chain
+  labeled B is called a closed chain. With closed chains, there are again
+  only two possible optimal move sequences. One possible move sequence is to
+  again complete all of the boxes. The other possible move sequence is to
+  complete all but four boxes, sacrificing those to the opponent to maintain
+  control. In our evaluation metric, this second case appears rarely, since
+  it is rarely optimal to sacrifice four boxes on a 4x3 grid.
 
   We will check our algorithm's efficacy against three classes of metrics.
   The first, a purely random agent, just arbitrarily draws edges. A human can
@@ -128,10 +129,9 @@
   levels of the game tree for a <math|2\<times\>3> game, using a minimax
   approach and alpha-beta pruning, to demonstrate how a pruning approach can
   significantly reduce the number of states we must search. Specifically, we
-  will examine the end game, as it demonstrates the utility of pruning
-  certain branches at a small, approachable level. Because this principle
-  generally applies, demonstrating it in specific, smaller cases can show its
-  utility on a larger level. The example in question is Fig. 2 in Appendix.
+  will examine the first two moves; a sample opening sequence of the game is
+  shown in Fig. 2 in the Appendix. Here, both player 1 and player 2 are
+  minimax agents operating with a lookahead of 2 levels.\ 
 
   <with|font-series|bold|<underline|Initial Results>>
 
