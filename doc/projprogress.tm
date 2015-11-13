@@ -89,6 +89,20 @@
   potential action at each state, vastly improve its ability to traverse the
   game space, and increase its probability of winning the game.
 
+  On top of optimizations for general zero-sum games, we also make use of several
+  algorithmic optimizations specific to Dots and Boxes. First, there are a couple
+  chain structures that we can take advantage of displayed in the figure below.
+  The chain labeled A is called a half-opened chain, since it is open only at one
+  end. With half open chains, there are only two possible optimal moves -- to either
+  complete each box in the chain or to complete all but two boxes, leaving the two
+  boxes incomplete for the next player to take in order to maintain control over the game.
+  The chain labeled B is called a closed chain. With closed chains, there are again
+  only two possible optimal move sequences. One possible move sequence is to again
+  complete all of the boxes. The other possible move sequence is to complete all
+  but four boxes, sacrificing those to the opponent to maintain control. In our
+  evaluation metric, this second case appears rarely, since it is rarely optimal
+  to sacrifice four boxes on a 4x3 grid.
+
   We will check our algorithm's efficacy against three classes of metrics.
   The first, a purely random agent, just arbitrarily draws edges. A human can
   beat this agent, so we expect even a rudimentary AI to perform excellently.
