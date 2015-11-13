@@ -119,7 +119,7 @@ class MinimaxAgent(Agent):
                 return V
             
         if self.depth > 1:
-            if gameState.getMovesWithoutCapture() < 5:
+            if len(gameState.getMovesWithoutCapture()) < 5:
                 self.depth = 4
         score, action = V_opt(gameState, self.depth, float("-inf"), float("inf"))
         if self.verbose >= 1:
