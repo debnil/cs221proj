@@ -71,9 +71,18 @@
 
   Once we have characterized the space of potential states, we will apply
   algorithms discussed in class to efficiently search the state space and
-  return the optimal move at each turn. Specifically, we will apply temporal
-  difference, or TD, learning. By running a multitude of Monte Carlo
-  simulations, we generate potential data. Then, we learn weights
+  return the optimal move at each turn. This can be broadly segmented into
+  two parts: first, establishing a general strategy to play the game, and
+  second, learning the best policy through simulations. Note that in a
+  zero-sum game, the opponent plays in an adversarial manner. Her goal is to
+  maximize her utility, which trades off with the agent's. As a result, we
+  will take a minimax approach to choosing the next move, whereby we assume
+  the adversary will take the step that minimizes our utility and therefore
+  choose the step which returns the maximum of these minimal values.
+
+  Next, we must learn the best game-playing policy in all. Specifically, we
+  will apply temporal difference, or TD, learning. By running a multitude of
+  Monte Carlo simulations, we generate potential data. Then, we learn weights
   <math|\<b-up-w\>> of the evaluation function from this data. A large
   quantity of simulations will help us learn effective weights. In turn, we
   can use the evaluation function to help our agent quickly compute the best
@@ -105,8 +114,10 @@
   levels of the game tree for a <math|2\<times\>3> game, using a minimax
   approach and alpha-beta pruning, to demonstrate how a pruning approach can
   significantly reduce the number of states we must search. Specifically, we
-  will examine the end game, as it demonstrates the utility of severing
-  certain branches at a small, approachable level.
+  will examine the end game, as it demonstrates the utility of pruning
+  certain branches at a small, approachable level. Because this principle
+  generally applies, demonstrating it in specific, smaller cases can show its
+  utility on a larger level. The example in question is Fig. 2 in Appendix.
 
   <with|font-series|bold|<underline|Initial Results>>
 
