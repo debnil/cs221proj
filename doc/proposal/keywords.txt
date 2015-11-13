@@ -1,4 +1,4 @@
-Multi-agent
-Reinforcement Learning
-Traffic
-Q Learning
+Game-playing
+Simple game
+Dots and Boxes
+Minimax
