@@ -1,12 +1,12 @@
 import structure
 
 def printGame(gameState):
-    assert gameState.width > 0
-    assert gameState.height > 0
-    for y in range(gameState.height): # TODO: Use real fxn
+    assert gameState.getWidth() > 0
+    assert gameState.getHeight() > 0
+    for y in range(gameState.getHeight()): # TODO: Use real fxn
         print "+",
-        for x in range(gameState.width):
-            currBox = gameState.grid.getBox(x, y)
+        for x in range(gameState.getWidth()):
+            currBox = gameState.getGrid().getBox(x, y)
             if currBox.getEdge(structure.Edge.TOP):
                 print "-",
             else:
@@ -14,14 +14,14 @@ def printGame(gameState):
             print "+",
         print ""
         # Print the left most
-        currBox = gameState.grid.getBox(0, y)
+        currBox = gameState.getGrid().getBox(0, y)
         if currBox.getEdge(structure.Edge.LEFT):
             print "|",
         else:
             print " ",
         # Print the middle row
-        for x in range(0, gameState.width):
-            currBox = gameState.grid.getBox(x, y)
+        for x in range(0, gameState.getWidth()):
+            currBox = gameState.getGrid().getBox(x, y)
             owner = currBox.getOwner()
             if owner == 0:
                 print " ",
@@ -33,8 +33,8 @@ def printGame(gameState):
                 print " ",
         print ""
     print "+",
-    for x in range(gameState.width): # Print the bottom row
-        currBox = gameState.grid.getBox(x, gameState.height - 1)
+    for x in range(gameState.getWidth()): # Print the bottom row
+        currBox = gameState.getGrid().getBox(x, gameState.getHeight() - 1)
         if currBox.getEdge(structure.Edge.BOTTOM):
             print "-",
         else:

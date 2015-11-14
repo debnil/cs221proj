@@ -29,29 +29,29 @@ def getNeighborCoordinates(x, y, edgeType):
 class Box():
     def __init__(self, owner = 0, \
             left = False, right = False, top = False, bottom = False):
-        self.left = left # Edge is true if it's in the box
-        self.right = right
-        self.top = top
-        self.bottom = bottom
+        self.left_ = left # Edge is true if it's in the box
+        self.right_ = right
+        self.top_ = top
+        self.bottom_ = bottom
         if owner != 0:
             assert left and right and top and bottom
-        self.owner = owner # Whoever owns the box
+        self.owner_ = owner # Whoever owns the box
 
     def rotateRight(self):
-        saved = self.right
-        self.right = self.top
-        self.top = self.left
-        self.left = self.bottom
-        self.bottom = saved
+        saved = self.right_
+        self.right_ = self.top_
+        self.top_ = self.left_
+        self.left_ = self.bottom_
+        self.bottom_ = saved
 
     def __eq__(self, other):
-        if self.left != other.left:
+        if self.left_ != other.left:
             return False
-        if self.right != other.right:
+        if self.right_ != other.right:
             return False
-        if self.top != other.top:
+        if self.top_ != other.top:
             return False
-        if self.bottom != other.bottom:
+        if self.bottom_ != other.bottom:
             return False
 
     def __ne__(self, other):
@@ -59,70 +59,70 @@ class Box():
 
     def edgeCount(self):
         count = 0
-        if self.left:
+        if self.left_:
             count += 1
-        if self.right:
+        if self.right_:
             count += 1
-        if self.top:
+        if self.top_:
             count += 1
-        if self.bottom:
+        if self.bottom_:
             count += 1
         return count
     
     def getEdge(self, edge):
         if edge == Edge.LEFT:
-            return self.left
+            return self.left_
         if edge == Edge.RIGHT:
-            return self.right
+            return self.right_
         if edge == Edge.TOP:
-            return self.top
+            return self.top_
         if edge == Edge.BOTTOM:
-            return self.bottom
+            return self.bottom_
 
     def setEdge(self, edge, val):
         if edge == Edge.LEFT:
-            self.left = val
+            self.left_ = val
         if edge == Edge.RIGHT:
-            self.right = val
+            self.right_ = val
         if edge == Edge.TOP:
-            self.top = val
+            self.top_ = val
         if edge == Edge.BOTTOM:
-            self.bottom = val
+            self.bottom_ = val
 
     def getOwner(self):
-        return self.owner
+        return self.owner_
 
     def setOwner(self, player):
-        self.owner = player
+        self.owner_ = player
 
     def reset(self):
-        self.left = False
-        self.right = False
-        self.top = False
-        self.bottom = False
-        self.owner = 0
+        self.left_ = False
+        self.right_ = False
+        self.top_ = False
+        self.bottom_ = False
+        self.owner_ = 0
 
     def __str__(self):
         return "{LEFT: %r, RIGHT: %r, TOP: %r, BOTTOM: %r}, Owner: %d" % \
-                (self.left, self.right, self.top, self.bottom, self.owner)
+                (self.left_, self.right_, self.top_, self.bottom_, self.owner_)
 
     def __repr__(self):
         return self.__str__()
 
 class Grid():
     def __init__(self, width, height):
-        self.width = width
-        self.height = height
-        self.grid = []
+        self.width_ = width
+        self.height_ = height
+        self.grid_ = []
         for _ in range(width):
             col = []
             for _ in range(height):
                 col.append(Box())
-            self.grid.append(col)
+            self.grid_.append(col)
 
     def getBox(self, x, y):
         if self.__inBounds(x, y):
-            return self.grid[x][y]
+            return self.grid_[x][y]
         else:
             return None
 
@@ -139,7 +139,7 @@ class Grid():
         boxesMade = 0
         if not self.__inBounds(x, y):
             raise ValueError("(%d, %d) out of bounds." % (x, y))
-        box = self.grid[x][y]
+        box = self.grid_[x][y]
         box.setEdge(edgeType, value)
         if box.edgeCount() == 4:
             box.setOwner(player)
@@ -161,18 +161,18 @@ class Grid():
     def __inBounds(self, x, y):
         if x < 0:
             return False
-        if x >= self.width:
+        if x >= self.width_:
             return False
         if y < 0:
             return False
-        if y >= self.height:
+        if y >= self.height_:
             return False
         return True
 
     def reset(self):
-        for col in self.grid:
+        for col in self.grid_:
             for box in col:
                 box.reset()
 
     def __str__(self):
-        return str(self.grid)
+        return str(self.grid_)
