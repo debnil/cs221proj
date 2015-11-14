@@ -102,6 +102,13 @@ class Box():
         self.bottom = False
         self.owner = 0
 
+    def __str__(self):
+        return "{LEFT: %r, RIGHT: %r, TOP: %r, BOTTOM: %r}, Owner: %d" % \
+                (self.left, self.right, self.top, self.bottom, self.owner)
+
+    def __repr__(self):
+        return self.__str__()
+
 class Grid():
     def __init__(self, width, height):
         self.width = width
@@ -167,3 +174,6 @@ class Grid():
         for col in self.grid:
             for box in col:
                 box.reset()
+
+    def __str__(self):
+        print self.grid

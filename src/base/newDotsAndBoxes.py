@@ -24,6 +24,7 @@ class DotBoxGameState:
         new.score += boxesMade * new.turn
         if boxesMade == 0:
             new.turn *= -1
+        print new
         return new
     
     def getValidMoves(self):
@@ -50,7 +51,6 @@ class DotBoxGameState:
 
         for y in range(self.height):
             self.validMoves.add(Move(self.width - 1, y, structure.Edge.RIGHT))
-
 
     ###############################################################
     ########################## ACCESSORS ##########################
@@ -106,8 +106,8 @@ class DotBoxGame:
 #newUtil.printGame(newGame)
 
 agentOne = newAgents.RandomAgent(1)
-agentTwo = newAgents.RandomAgent(-1)
-game = DotBoxGame(3, 3, agentOne, agentTwo, verbose = 3)
+agentTwo = newAgents.HumanAgent(-1)
+game = DotBoxGame(4, 3, agentOne, agentTwo, verbose = 3)
 firstWins = 0
 secondWins = 0
 NUM_TRIALS = 1000

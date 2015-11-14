@@ -1,3 +1,6 @@
+import structure
+import sys
+
 class Move:
     def __init__(self, x, y, edgeType):
         self.x = x
@@ -14,7 +17,7 @@ class Move:
 
         if neighborX == other.x and \
            neighborY == other.y and \
-           oppositeEdge(self.edgeType) == other.edgeType:
+           structure.oppositeEdge(self.edgeType) == other.edgeType:
             return True
 
         return False
@@ -23,5 +26,13 @@ class Move:
         return not self == other
 
     def __hash__(self):
-        return hash((self.x, self.y, self.edgeType))
+        if self.edgeType == structure.Edge.LEFT or \
+                self.edgeType == structure.Edge.TOP:
+            return hash((self.x, self.y, self.edgeType))
+        
+        neighborX, neighborY = \
+                structure.getNeighborCoordinates(self.x, self.y, self.edgeType)
+        return hash((neighborX, neighborY, structure.oppositeEdge(self.edgeType))) 
 
+    def __str__(self):
+        return "(%d, %d), %s" % (self.x, self.y, self.edgeType)
