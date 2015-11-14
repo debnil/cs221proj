@@ -8,6 +8,12 @@ class Move:
         self.edgeType = edgeType
 
     def __eq__(self, other):
+        if other is None and self is not None:
+            return False
+        if other is not None and self is None:
+            return False
+        if self is None and other is None:
+            return True
         if self.x == other.x and \
            self.y == other.y and \
            self.edgeType == other.edgeType:

@@ -4,6 +4,10 @@ import copy
 import newUtil
 import structure
 
+###############################################################
+############################ STATE ############################
+###############################################################
+
 class DotBoxGameState:
     def __init__(self, width, height, score, turn):
         self.width_ = width # Num dots wide
@@ -41,6 +45,46 @@ class DotBoxGameState:
     def getValidMoves(self):
         return self.validMoves_
 
+    def getCaptureMoves(self):
+        captureMoves = set()
+        for x in range(self.width_):
+            for y in range(self.height_):
+                box = self.grid.getBox(x, y)
+                if box.edgeCount() == 3:
+                    edgeType = box.getMissingEdges()[0]
+                    captureMoves.add(Move(x, y, edgeType))
+        return captureMoves
+
+    def getChainMoves(self):
+        chainMoves = set()
+        for x in range(self.width_):
+            for y in range(self.height_):
+                box = self.grid_.getBox(x, y)
+                chain = []
+                if box.edgeCount() == 3:
+                    edgeType = box.getMissingEdges()[0]
+                    chain.append(Move(x, y, edgeType))
+                    chainX, chainY = structure.getNeighborCoordinates(x, y, edgeType)
+                    chainBox = self.grid_.getBox(chainX, chainY)
+                    #TODO: Consider non-half-open chains
+                    while chainBox is not None and chainBox.edgeCount() == 2: # Half-open chains
+                        edges = chainBox.getMissingEdges()
+                        if edges[0] == structure.oppositeEdge(edgeType):
+                            edgeType = edges[1]
+                        else:
+                            edgeType = edges[0]
+                        chain.append(Move(chainX, chainY, edgeType))
+                        chainX, chainY = \
+                                structure.getNeighborCoordinates(chainX, chainY, edgeType)
+                        chainBox = self.grid_.getBox(chainX, chainY)
+                if len(chain) == 1:
+                    chainMoves.add(chain[0])
+                elif len(chain) >= 2:
+                    #print chain
+                    chainMoves.add(chain[0])
+                    chainMoves.add(chain[-1])
+        return chainMoves
+
     def getScore(self):
         return self.score_
 
@@ -76,6 +120,10 @@ class DotBoxGameState:
     def __str__(self):
         return str(self.grid_)
 
+###############################################################
+############################# GAME ############################
+###############################################################
+
 class DotBoxGame:
     # Width and height do NOT specify edges.
     # +-+
@@ -92,10 +140,10 @@ class DotBoxGame:
         self.winner_ = 0
 
     def playGame(self):
-        # reinitialize all of the internal states
+        # Reinitialize all of the internal states
         self.state_.reset()
 
-        while not self.state_.isEnd(): #TODO: Use accessors
+        while not self.state_.isEnd(): 
             playerNumber = 1 if (self.state_.getTurn() == 1) else 2
             if self.verbose_ >= 3:
                 newUtil.printGame(self.state_)
@@ -106,7 +154,6 @@ class DotBoxGame:
             else: 
                 move = self.playerTwoAgent_.getAction(self.state_)
             self.state_ = self.state_.generateSuccessor(move)
-            #pause = raw_input()
 
         if self.state_.getScore() < 0:
             self.winner_ = -1
@@ -121,7 +168,3 @@ class DotBoxGame:
 
     def getWinner(self):
         return self.winner_
-
-#game = DotBoxGameState(2, 3, 0, 1)
-#newGame = game.generateSuccessor(0, 0, structure.Edge.LEFT)
-#newUtil.printGame(newGame)

@@ -1,8 +1,15 @@
 import newDotsAndBoxes
 import newAgents
 
-agentOne = newAgents.RandomAgent(1)
-agentTwo = newAgents.RandomAgent(-1)
+#agentOne = newAgents.RandomAgent(1)
+agentOne = newAgents.MinimaxAgent(evaluationFn = newAgents.basicEval, \
+                                  depth = 2, \
+                                  player = 1, \
+                                  verbose = 3)
+agentTwo = newAgents.MinimaxAgent(evaluationFn = newAgents.basicEval, \
+                                  depth = 2, \
+                                  player = -1, \
+                                  verbose = 3)
 game = newDotsAndBoxes.DotBoxGame(4, 3, agentOne, agentTwo, verbose = 3)
 firstWins = 0
 secondWins = 0

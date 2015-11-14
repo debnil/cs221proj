@@ -89,6 +89,18 @@ class Box():
         if edge == Edge.BOTTOM:
             self.bottom_ = val
 
+    def getMissingEdges(self):
+        missing = []
+        if not self.top_:
+            missing.append(Edge.TOP)
+        if not self.right_:
+            missing.append(Edge.RIGHT)
+        if not self.bottom_:
+            missing.append(Edge.BOTTOM)
+        if not self.left_:
+            missing.append(Edge.LEFT)
+        return missing
+
     def getOwner(self):
         return self.owner_
 
