@@ -75,10 +75,11 @@ class MinimaxAgent(Agent):
                 V = float("-inf"), None
                 # Only inspect captures if captures exist
                 captureMoves = gameState.getCaptureMoves() 
-                if len(captureMoves) == 0:
-                    moveSet = gameState.getValidMoves()
-                else:
-                    moveSet = captureMoves
+                moveSet = gameState.getValidMoves()
+                #if len(captureMoves) == 0:
+                #    moveSet = gameState.getValidMoves()
+                #else:
+                #    moveSet = captureMoves
 
                 for move in moveSet:
                     successor = gameState.generateSuccessor(move)
@@ -95,11 +96,12 @@ class MinimaxAgent(Agent):
             else: # Opponent's turn
                 V = float("inf"), None
                 # Only inspect captures if captures exist
-                captureMoves = gameState.getCaptureMoves()
-                if len(captureMoves) == 0:
-                    moveSet = gameState.getValidMoves()
-                else:
-                    moveSet = captureMoves
+                moveSet = gameState.getValidMoves()
+                #captureMoves = gameState.getCaptureMoves()
+                #if len(captureMoves) == 0:
+                #    moveSet = gameState.getValidMoves()
+                #else:
+                #    moveSet = captureMoves
 
                 for move in moveSet:
                     successor = gameState.generateSuccessor(move)
@@ -119,8 +121,10 @@ class MinimaxAgent(Agent):
                 return V
             
         if self.depth > 1:
-            if len(gameState.getMovesWithoutCapture()) < 5:
+            if len(gameState.getValidMoves()) < 5:
                 self.depth = 4
+            else:
+                self.depth = 2
         score, action = V_opt(gameState, self.depth, float("-inf"), float("inf"))
         if self.verbose >= 1:
             print "Searching %d deep" % self.depth
