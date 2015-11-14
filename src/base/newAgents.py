@@ -113,34 +113,9 @@ class MinimaxAgent(Agent):
                         break
                 return V
 
-        if raw_input("Do you want to make a move? [Y/n]") == "Y":
-            while True:
-                line = raw_input("Enter (x, y, edge) where (x, y) is the coordinate of a box and edge is (left, right, top, or bottom): ")
-                try:
-                    x, y, edge = (x.strip() for x in line.split(','))
-                except TypeError as e:
-                    print "Somehow we encountered a TypeError", e
-
-                if edge == "left":
-                    edgeType = structure.Edge.LEFT
-                elif edge == "right":
-                    edgeType = structure.Edge.RIGHT
-                elif edge == "top":
-                    edgeType = structure.Edge.TOP
-                elif edge == "bottom":
-                    edgeType = structure.Edge.BOTTOM
-                else:
-                    print "Not a valid move"
-                    continue
-
-                action = move.Move(int(x), int(y), edgeType)
-                if action in gameState.getValidMoves():
-                    return action
-                else:
-                    print "Not in the set of valid moves"
-                    print gameState.getValidMoves()
-
-        if len(gameState.getChainMoves()) != 0:
+        if len(gameState.getMovesWithoutCaptures()) < 5:
+            self.depth_ = 4
+        if len(gameState.getChainMoves()) != 0 and len(gameState.getValidMoves()) < 10:
             self.depth_ = 4
         else:
             self.depth_ = 2

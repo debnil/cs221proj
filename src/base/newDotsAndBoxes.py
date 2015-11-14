@@ -61,12 +61,12 @@ class DotBoxGameState:
             for y in range(self.height_):
                 box = self.grid_.getBox(x, y)
                 chain = []
+                chainBox = None
                 if box.edgeCount() == 3:
                     edgeType = box.getMissingEdges()[0]
                     chain.append(Move(x, y, edgeType))
                     chainX, chainY = structure.getNeighborCoordinates(x, y, edgeType)
                     chainBox = self.grid_.getBox(chainX, chainY)
-                    #TODO: Consider non-half-open chains
                     while chainBox is not None and chainBox.edgeCount() == 2: # Half-open chains
                         edges = chainBox.getMissingEdges()
                         if edges[0] == structure.oppositeEdge(edgeType):
@@ -77,13 +77,30 @@ class DotBoxGameState:
                         chainX, chainY = \
                                 structure.getNeighborCoordinates(chainX, chainY, edgeType)
                         chainBox = self.grid_.getBox(chainX, chainY)
-                if len(chain) == 1:
-                    chainMoves.add(chain[0])
-                elif len(chain) >= 2:
-                    #print chain
-                    chainMoves.add(chain[0])
-                    chainMoves.add(chain[-1])
+                if chainBox is not None and chainBox.edgeCount() == 3: # Closed chain
+                    if len(chain) > 0:
+                        chainMoves.add(chain[0])
+                        if len(chain) == 3: # 4 hard-hearted handout
+                            chainMoves.add(chain[1])
+                else: # Half-open chain
+                    if len(chain) == 1 or len(chain) >= 3:
+                        chainMoves.add(chain[0])
+                    elif len(chain) == 2: # Hard-hearted handout
+                        chainMoves.add(chain[0])
+                        chainMoves.add(chain[-1])
         return chainMoves
+
+    # Returns the set of moves that will not result in a possible capture
+    def getMovesWithoutCaptures(self):
+        moves = set()
+        for x in range(self.width_):
+            for y in range(self.height_):
+                box = self.grid_.getBox(x, y)
+                if box.edgeCount() <= 2:
+                    edges = box.getMissingEdges()
+                    for edge in edges:
+                        moves.add(Move(x, y, edge))
+        return moves
 
     def getScore(self):
         return self.score_
