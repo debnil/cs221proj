@@ -8,16 +8,20 @@ class Move:
         if self.x == other.x and \
            self.y == other.y and \
            self.edgeType == other.edgeType:
-           return True
-        
+            return True
+
         neighborX, neighborY = structure.getNeighborCoordinates(self.x, self.y, self.edgeType)
 
         if neighborX == other.x and \
            neighborY == other.y and \
            oppositeEdge(self.edgeType) == other.edgeType:
-           return True
-        
-       return False
-    
+            return True
+
+        return False
+
     def __ne__(self, other):
         return not self == other
+
+    def __hash__(self):
+        return hash((self.x, self.y, self.edgeType))
+

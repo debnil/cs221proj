@@ -40,5 +40,6 @@ def printGame(gameState):
         else:
             print " ",
         print "+",
+    print ""
 
 
