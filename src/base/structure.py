@@ -119,7 +119,6 @@ class Grid():
             for _ in range(height):
                 col.append(Box())
             self.grid.append(col)
-        print self.grid
 
     def getBox(self, x, y):
         if self.__inBounds(x, y):
@@ -176,4 +175,4 @@ class Grid():
                 box.reset()
 
     def __str__(self):
-        print self.grid
+        return str(self.grid)

@@ -34,8 +34,8 @@ def printGame(gameState):
         print ""
     print "+",
     for x in range(gameState.width): # Print the bottom row
-        currBox = gameState.grid.getBox(x, y)
-        if currBox.getEdge(structure.Edge.TOP):
+        currBox = gameState.grid.getBox(x, gameState.height - 1)
+        if currBox.getEdge(structure.Edge.BOTTOM):
             print "-",
         else:
             print " ",

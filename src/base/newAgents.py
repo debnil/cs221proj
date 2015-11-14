@@ -11,7 +11,6 @@ class RandomAgent(Agent):
     def getAction(self, gameState):
         actions = gameState.getValidMoves()
         randomAction = random.choice(tuple(actions))
-        print randomAction
         return randomAction
 
 class HumanAgent(Agent):

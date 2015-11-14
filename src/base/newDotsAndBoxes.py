@@ -24,7 +24,6 @@ class DotBoxGameState:
         new.score += boxesMade * new.turn
         if boxesMade == 0:
             new.turn *= -1
-        print new
         return new
     
     def getValidMoves(self):
@@ -51,6 +50,9 @@ class DotBoxGameState:
 
         for y in range(self.height):
             self.validMoves.add(Move(self.width - 1, y, structure.Edge.RIGHT))
+
+    def __str__(self):
+        return str(self.grid)
 
     ###############################################################
     ########################## ACCESSORS ##########################
