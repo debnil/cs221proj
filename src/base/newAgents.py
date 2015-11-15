@@ -7,6 +7,9 @@ class Agent:
     def __init__(self, player):
         self.player_ = player # 1 for player 1, -1 for player 2
 
+    def isWinner(self, value):
+        self.winner_ = value
+
 class RandomAgent(Agent):
     def getAction(self, gameState):
         actions = gameState.getValidMoves()
@@ -47,20 +50,30 @@ class MinimaxAgent(Agent):
         self.depth_ = depth
         self.player_ = player # Player 1(1), Player 2(-1)
         self.verbose_ = verbose
+        self.cache_ = {} # Map from state to delta score
+        self.thisGameCache_ = []
 
     def getAction(self, gameState):
         def V_opt(gameState, depth, alpha, beta): # Alpha-beta pruning
             if gameState.isEnd():
-                score = gameState.getScore()
-                if score * self.player_ > 0:
-                    return float("inf"), None
-                elif score == 0:
-                    return 0, None
-                else:
-                    return float("-inf"), None
+                return self.evalFn_(self.player_, gameState), None
+                #score = gameState.getScore()
+                #if score * self.player_ > 0:
+                #    return float("inf"), None
+                #elif score == 0:
+                #    return 0, None
+                #else:
+                #    return float("-inf"), None
             elif (depth == 0):
                 return self.evalFn_(self.player_, gameState), None
             elif (gameState.getTurn() == self.player_): # Agent's turn
+                #stateKey = (tuple(gameState.grid_), depth)
+                #if stateKey in self.cache_:
+                #    return self.cache_[stateKey][0] + gameState.getScore(), self.cache_[stateKey][1]
+                hashedState = hash((gameState, depth, gameState.getScore()))
+                if hashedState in self.cache_ and depth != self.depth_:
+                    #print "Retrieving cached value"
+                    return self.cache_[hashedState]
                 V = float("-inf"), None
                 chainMoves = gameState.getChainMoves() 
                 if len(chainMoves) > 0:
@@ -68,7 +81,10 @@ class MinimaxAgent(Agent):
                 else:
                     moveSet = gameState.getValidMoves()
 
-                for move in moveSet:
+                if calculatedDepth == depth and len(moveSet) == 1:
+                    return 0, moveSet.pop()
+
+                for move in sorted(moveSet):
                     successor = gameState.generateSuccessor(move)
                     score = V_opt(successor, depth, alpha, beta)[0], move
                     V = max(V, (score[0], move))
@@ -82,6 +98,11 @@ class MinimaxAgent(Agent):
                         newUtil.printGame(successor)
                     if beta <= alpha: # Prune
                         break
+                #self.cache_[stateKey] = (V[0] - gameState.getScore(), V[1])
+                #self.cache_[hashedState] = (V[0] - gameState.getScore(), V[1])
+                self.cache_[hashedState] = V
+                if depth == self.depth_:
+                    self.thisGameCache_.append(hashedState)
                 return V
             else: # Opponent's turn
                 V = float("inf"), None
@@ -92,7 +113,7 @@ class MinimaxAgent(Agent):
                 else:
                     moveSet = gameState.getValidMoves()
 
-                for move in moveSet:
+                for move in sorted(moveSet):
                     successor = gameState.generateSuccessor(move)
                     newDepth = depth - 1
                     if successor.getTurn() != self.player_: # Still opp turn
@@ -113,17 +134,26 @@ class MinimaxAgent(Agent):
                         break
                 return V
 
-        if len(gameState.getMovesWithoutCaptures()) < 5:
-            self.depth_ = 4
-        if len(gameState.getChainMoves()) != 0 and len(gameState.getValidMoves()) < 10:
-            self.depth_ = 4
+        movesWithoutCaptures = gameState.getMovesWithoutCaptures()
+        #print "Moves without causing captures: ", movesWithoutCaptures
+        #print "Moves without causing captures: ", len(movesWithoutCaptures)
+        if len(movesWithoutCaptures) < 4:
+            calculatedDepth = self.depth_ + 1
+        elif len(gameState.getChainMoves()) != 0 and len(gameState.getValidMoves()) < 10:
+            calculatedDepth = self.depth_ + 1
         else:
-            self.depth_ = 2
-        score, action = V_opt(gameState, self.depth_, float("-inf"), float("inf"))
+            calculatedDepth = self.depth_
         if self.verbose_ >= 1:
             print "Searching %d deep" % self.depth_
+        score, action = V_opt(gameState, calculatedDepth, float("-inf"), float("inf"))
         print "Score: %f, Action: %s" % (score, action)
         return action
+
+    def isWinner(self, value):
+        # Update the cache on moves that you lost on
+        if not value:
+            for move in self.thisGameCache_:
+                self.cache_[move] = (self.cache_[move][0] - 1, self.cache_[move][1])
 
 def basicEval(player, gameState):
     return gameState.getScore() * player # Positive if player is winning

@@ -121,6 +121,10 @@ class Box():
     def __repr__(self):
         return self.__str__()
 
+    def __hash__(self):
+        return hash((self.left_, self.right_, self.top_, self.bottom_))
+
+
 class Grid():
     def __init__(self, width, height):
         self.width_ = width
@@ -188,3 +192,9 @@ class Grid():
 
     def __str__(self):
         return str(self.grid_)
+
+    def __hash__(self):
+        hashList = []
+        for col in self.grid_:
+            hashList.append(tuple(col))
+        return hash(tuple(hashList))

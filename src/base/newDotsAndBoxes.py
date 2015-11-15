@@ -96,10 +96,14 @@ class DotBoxGameState:
         for x in range(self.width_):
             for y in range(self.height_):
                 box = self.grid_.getBox(x, y)
-                if box.edgeCount() <= 2:
+                if box.edgeCount() <= 1:
                     edges = box.getMissingEdges()
                     for edge in edges:
-                        moves.add(Move(x, y, edge))
+                        neighborX, neighborY = \
+                                structure.getNeighborCoordinates(x, y, edge)
+                        neighbor = self.grid_.getBox(neighborX, neighborY)
+                        if neighbor is None or neighbor.edgeCount() <= 1:
+                            moves.add(Move(x, y, edge))
         return moves
 
     def getScore(self):
@@ -136,6 +140,26 @@ class DotBoxGameState:
 
     def __str__(self):
         return str(self.grid_)
+
+    def __hash__(self):
+        return hash((self.grid_, self.turn_))
+
+    def __eq__(self, other):
+        if other is None and self is not None:
+            return False
+        if self is None and other is not None:
+            return False
+        if self is None and other is None:
+            return True
+        if self.width_ != other.width_:
+            return False
+        if self.height_ != other.height_:
+            return False
+        if self.turn_ != other.turn_:
+            return False
+        if self.grid_ != other.grid_:
+            return False
+        return True
 
 ###############################################################
 ############################# GAME ############################
@@ -174,8 +198,12 @@ class DotBoxGame:
 
         if self.state_.getScore() < 0:
             self.winner_ = -1
+            self.playerOneAgent_.isWinner(False)
+            self.playerTwoAgent_.isWinner(True)
         elif self.state_.getScore() > 0:
             self.winner_ = 1
+            self.playerOneAgent_.isWinner(True)
+            self.playerTwoAgent_.isWinner(False)
         else: # Tie
             self.winner_ = 0
         if self.verbose_ >= 2:

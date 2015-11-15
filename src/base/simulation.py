@@ -1,19 +1,25 @@
 import newDotsAndBoxes
 import newAgents
+import structure
 
-#agentOne = newAgents.RandomAgent(1)
+#agentOne = newAgents.HumanAgent(1)
 agentOne = newAgents.MinimaxAgent(evaluationFn = newAgents.basicEval, \
-                                  depth = 2, \
+                                  depth = 1, \
                                   player = 1, \
-                                  verbose = 3)
+                                  verbose = 2)
 agentTwo = newAgents.MinimaxAgent(evaluationFn = newAgents.basicEval, \
                                   depth = 2, \
                                   player = -1, \
-                                  verbose = 3)
-game = newDotsAndBoxes.DotBoxGame(4, 3, agentOne, agentTwo, verbose = 3)
+                                  verbose = 2)
+game = newDotsAndBoxes.DotBoxGame(5, 4, agentOne, agentTwo, verbose = 3)
 firstWins = 0
 secondWins = 0
-NUM_TRIALS = 1000
+NUM_TRIALS = 10
+#gridOne = structure.Grid(3, 5)
+#gridTwo = structure.Grid(3, 5)
+#gridTwo.addEdge(0, 0, structure.Edge.LEFT, 1)
+#print hash(gridOne)
+#print hash(gridTwo)
 for i in range(NUM_TRIALS):
     game.playGame()
     if (i % (NUM_TRIALS/10) == 0):
