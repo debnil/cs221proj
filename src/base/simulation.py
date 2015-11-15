@@ -8,7 +8,7 @@ agentOne = newAgents.MinimaxAgent(evaluationFn = newAgents.basicEval, \
                                   player = 1, \
                                   verbose = 2)
 agentTwo = newAgents.MinimaxAgent(evaluationFn = newAgents.basicEval, \
-                                  depth = 2, \
+                                  depth = 1, \
                                   player = -1, \
                                   verbose = 2)
 game = newDotsAndBoxes.DotBoxGame(5, 4, agentOne, agentTwo, verbose = 3)

@@ -50,8 +50,8 @@ class MinimaxAgent(Agent):
         self.depth_ = depth
         self.player_ = player # Player 1(1), Player 2(-1)
         self.verbose_ = verbose
-        self.cache_ = {} # Map from state to delta score
-        self.thisGameCache_ = []
+        self.cache_ = {} # [Game State, Move] -> Score of move
+        self.currGameMoves_ = []
 
     def getAction(self, gameState):
         def V_opt(gameState, depth, alpha, beta): # Alpha-beta pruning
@@ -67,13 +67,6 @@ class MinimaxAgent(Agent):
             elif (depth == 0):
                 return self.evalFn_(self.player_, gameState), None
             elif (gameState.getTurn() == self.player_): # Agent's turn
-                #stateKey = (tuple(gameState.grid_), depth)
-                #if stateKey in self.cache_:
-                #    return self.cache_[stateKey][0] + gameState.getScore(), self.cache_[stateKey][1]
-                hashedState = hash((gameState, depth, gameState.getScore()))
-                if hashedState in self.cache_ and depth != self.depth_:
-                    #print "Retrieving cached value"
-                    return self.cache_[hashedState]
                 V = float("-inf"), None
                 chainMoves = gameState.getChainMoves() 
                 if len(chainMoves) > 0:
@@ -85,8 +78,14 @@ class MinimaxAgent(Agent):
                     return 0, moveSet.pop()
 
                 for move in sorted(moveSet):
+                    # TODO: Make this score agnostic
+                    cacheKey = hash((gameState, depth, gameState.getScore(), move))
                     successor = gameState.generateSuccessor(move)
-                    score = V_opt(successor, depth, alpha, beta)[0], move
+                    if cacheKey in self.cache_:
+                        score = self.cache_[cacheKey], move
+                    else:
+                        score = V_opt(successor, depth, alpha, beta)[0], move
+                        self.cache_[cacheKey] = score[0]
                     V = max(V, (score[0], move))
                     alpha = max(alpha, V[0]) # Update alpha
                     if self.verbose_ >= 3:
@@ -98,11 +97,6 @@ class MinimaxAgent(Agent):
                         newUtil.printGame(successor)
                     if beta <= alpha: # Prune
                         break
-                #self.cache_[stateKey] = (V[0] - gameState.getScore(), V[1])
-                #self.cache_[hashedState] = (V[0] - gameState.getScore(), V[1])
-                self.cache_[hashedState] = V
-                if depth == self.depth_:
-                    self.thisGameCache_.append(hashedState)
                 return V
             else: # Opponent's turn
                 V = float("inf"), None
@@ -128,15 +122,12 @@ class MinimaxAgent(Agent):
                         print "Beta: ", beta
                     if self.verbose_ >= 4:
                         newUtil.printGame(successor)
-
                     if beta <= alpha: #Prune
                         V = (float("-inf"), V[1])
                         break
                 return V
 
         movesWithoutCaptures = gameState.getMovesWithoutCaptures()
-        #print "Moves without causing captures: ", movesWithoutCaptures
-        #print "Moves without causing captures: ", len(movesWithoutCaptures)
         if len(movesWithoutCaptures) < 4:
             calculatedDepth = self.depth_ + 1
         elif len(gameState.getChainMoves()) != 0 and len(gameState.getValidMoves()) < 10:
@@ -144,16 +135,20 @@ class MinimaxAgent(Agent):
         else:
             calculatedDepth = self.depth_
         if self.verbose_ >= 1:
-            print "Searching %d deep" % self.depth_
+            print "Searching %d deep" % calculatedDepth
         score, action = V_opt(gameState, calculatedDepth, float("-inf"), float("inf"))
+
+        self.currGameMoves_.append(hash((gameState, calculatedDepth, gameState.getScore(), action)))
         print "Score: %f, Action: %s" % (score, action)
         return action
-
+    
+    # Update the cache on moves that you lost on
+    # Resets internals
     def isWinner(self, value):
-        # Update the cache on moves that you lost on
         if not value:
-            for move in self.thisGameCache_:
-                self.cache_[move] = (self.cache_[move][0] - 1, self.cache_[move][1])
+            for move in self.currGameMoves_:
+                if move in self.cache_:
+                    self.cache_[move] -= 1
 
 def basicEval(player, gameState):
     return gameState.getScore() * player # Positive if player is winning
