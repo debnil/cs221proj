@@ -2,6 +2,7 @@ import random
 import util
 import structure
 import move
+import operator
 
 class Agent:
     def __init__(self, player):
@@ -74,19 +75,20 @@ class MinimaxAgent(Agent):
                 else:
                     moveSet = gameState.getValidMoves()
 
-                if calculatedDepth == depth and len(moveSet) == 1:
-                    return 0, moveSet.pop()
+                #if self.calculatedDepth == depth and len(moveSet) == 1:
+                #    return 0, moveSet.pop()
 
+                # TODO: Sort this properly
                 for move in sorted(moveSet):
                     # TODO: Make this score agnostic
-                    cacheKey = hash((gameState, depth, gameState.getScore(), move))
+                    cacheKey = (gameState, depth, gameState.getScore(), move)
                     successor = gameState.generateSuccessor(move)
                     if cacheKey in self.cache_:
                         score = self.cache_[cacheKey], move
                     else:
                         score = V_opt(successor, depth, alpha, beta)[0], move
                         self.cache_[cacheKey] = score[0]
-                    V = max(V, (score[0], move))
+                    V = max(V, (score[0], move), key=operator.itemgetter(0))
                     alpha = max(alpha, V[0]) # Update alpha
                     if self.verbose_ >= 3:
                         print "Calculated score for agent: ", score
@@ -96,8 +98,16 @@ class MinimaxAgent(Agent):
                     if self.verbose_ >= 4:
                         util.printGame(successor)
                     if beta <= alpha: # Prune
+                        if self.calculatedDepth == depth:
+                            print "Depth: %d" % depth
+                            print "Pruned"
                         break
+                #if self.calculatedDepth == depth:
+                #    print "Number of moves remaining: ", len(moveSet)
+
                 return V
+                
+
             else: # Opponent's turn
                 V = float("inf"), None
 
@@ -113,8 +123,8 @@ class MinimaxAgent(Agent):
                     if successor.getTurn() != self.player_: # Still opp turn
                         newDepth = depth
                     score = V_opt(successor, newDepth, alpha, beta)[0], move
-                    V = min(V, (score[0], move))
-                    beta = min(beta, V[0]) # Update beta
+                    V = min(V, (score[0], move), key=operator.itemgetter(0))
+                    beta = min(beta, score[0]) # Update beta
                     if self.verbose_ >= 3:
                         print "Calculated score for opp: ", score
                         print "Depth: ", depth
@@ -123,22 +133,21 @@ class MinimaxAgent(Agent):
                     if self.verbose_ >= 4:
                         util.printGame(successor)
                     if beta <= alpha: #Prune
-                        V = (float("-inf"), V[1])
                         break
                 return V
 
         movesWithoutCaptures = gameState.getMovesWithoutCaptures()
         if len(movesWithoutCaptures) < 4:
-            calculatedDepth = self.depth_ + 1
+            self.calculatedDepth = self.depth_ + 1
         elif len(gameState.getChainMoves()) != 0 and len(gameState.getValidMoves()) < 10:
-            calculatedDepth = self.depth_ + 1
+            self.calculatedDepth = self.depth_ + 1
         else:
-            calculatedDepth = self.depth_
+            self.calculatedDepth = self.depth_
         if self.verbose_ >= 1:
-            print "Searching %d deep" % calculatedDepth
-        score, action = V_opt(gameState, calculatedDepth, float("-inf"), float("inf"))
+            print "Searching %d deep" % self.calculatedDepth
+        score, action = V_opt(gameState, self.calculatedDepth, float("-inf"), float("inf"))
 
-        self.currGameMoves_.append(hash((gameState, calculatedDepth, gameState.getScore(), action)))
+        self.currGameMoves_.append((gameState, self.calculatedDepth, gameState.getScore(), action))
         print "Score: %f, Action: %s" % (score, action)
         return action
     
@@ -149,6 +158,9 @@ class MinimaxAgent(Agent):
             for move in self.currGameMoves_:
                 if move in self.cache_:
                     self.cache_[move] -= 1
+                else:
+                    print "Somehow not in cache"
+        self.currGameMoves_ = []
 
 def basicEval(player, gameState):
     return gameState.getScore() * player # Positive if player is winning

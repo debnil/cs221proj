@@ -5,7 +5,7 @@ import structure
 #agentOne = agents.HumanAgent(1)
 agentOne = agents.MinimaxAgent(evaluationFn = agents.basicEval, \
                                   depth = 1, \
-                                  player = 1, \
+                                  player = 2, \
                                   verbose = 2)
 agentTwo = agents.MinimaxAgent(evaluationFn = agents.basicEval, \
                                   depth = 1, \
