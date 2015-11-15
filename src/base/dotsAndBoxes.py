@@ -1,214 +1,169 @@
-from graph import *
-import util
-import agents
+from structure import *
+from move import *
 import copy
+import util
+import structure
+
+###############################################################
+############################ STATE ############################
+###############################################################
 
 class DotBoxGameState:
-    def _initializeMoves(self):
-        self.moves = []
-        for row in range(self.height):
-            for col in range(self.width):
-                if row+1 < self.height:
-                    self.moves.append(Edge(Vertex(col, row), Vertex(col, row+1)))
-                if col+1 < self.width:
-                    self.moves.append(Edge(Vertex(col, row), Vertex(col+1, row)))
+    def __init__(self, width, height, score, turn):
+        self.width_ = width # Num dots wide
+        self.height_ = height # Num dots high
+        self.score_ = score
+        self.turn_ = turn # -1 for player 2, 1 for player 1
+        self.grid_ = Grid(width, height) # Grid of boxes
+        self.__createValidMoves()
+        
+    def generateSuccessor(self, move):
+        if move not in self.validMoves_:
+            raise ValueError("(%d, %d), %s is not a valid move" % (x, y, edgeType))
+        new = copy.deepcopy(self)
+        player = 1 if new.getTurn() > 0 else 2
+        boxesMade = new.grid_.addEdge(move.x, move.y, move.edgeType, player)
+        new.validMoves_.remove(move) 
+        new.score_ += boxesMade * new.getTurn()
+        if boxesMade == 0:
+            new.turn_ *= -1
+        return new
+    
+    def isEnd(self):
+        return len(self.validMoves_) == 0
 
-    def __init__(self, game, width, height, score, turn, edges, moves = None, squares = None, grid = None):
-        self.game = game # For paint purposes
-        if grid is None:
-            self.grid = []   # Also for paint
-            for x in range(width):
-                col = []
-                for y in range(height):
-                    col.append(Vertex(x, y))
-                self.grid.append(col)
-        else:
-            self.grid = grid
+    def reset(self):
+        self.score_ = 0
+        self.turn_ = 1
+        self.grid_.reset()
+        self.__createValidMoves()
 
-        if squares is None:
-            self.squares = {}
-        else:
-            self.squares = squares
-        self.width = width
-        self.height = height
-        self.score = score
-        self.turn = turn
-        self.edges = edges
-        if moves is None:
-            self.moves = []
-            self._initializeMoves()
-        else:
-            self.moves = moves
-
-    def deepCopy(self):
-        otherEdges = copy.deepcopy(self.edges)
-        otherMoves = copy.deepcopy(self.moves)
-        otherSquares = copy.deepcopy(self.squares)
-        otherGrid = copy.deepcopy(self.grid)
-        other = DotBoxGameState(self.game, self.width, self.height, self.score, self.turn, \
-                                otherEdges, otherMoves, otherSquares, otherGrid)
-        return other
-
-    def _restart(self):
-        for y in range(self.getHeight()):
-            for x in range(self.getWidth()):
-                self.grid[x][y].edges = []
-        self.squares = {}
-        self.score = 0
-        self.edges = []
-        self._initializeMoves()
-
-    def getWidth(self):
-        return self.width
-
-    def getHeight(self):
-        return self.height
-
-    def getScore(self):
-        return self.score
-
-    def getTurn(self):
-        return self.turn
-
-    def getEdges(self):
-        return self.edges
-
-    # Generates a successor.
-    def generateSuccessor(self, edge):
-        other = self.deepCopy()
-        other.addEdge(edge)
-        #util.printGame(self.game)
-        #util.printGame(other.game)
-        return other
-
-    # Check if you've made a square
-    def _detectSquare(self, edge, addPaint = True):
-        edgeSet = self.edges
-        if (abs(edge.src.x - edge.dest.x) == 1): # Horizontal
-            score = 0
-            if (Edge(Vertex(edge.src.x, edge.src.y), \
-                     Vertex(edge.src.x, edge.src.y - 1)) in edgeSet and \
-                Edge(Vertex(edge.dest.x, edge.dest.y), \
-                     Vertex(edge.dest.x, edge.dest.y - 1)) in edgeSet and \
-                Edge(Vertex(edge.src.x, edge.src.y - 1), \
-                     Vertex(edge.dest.x, edge.dest.y - 1)) in edgeSet):
-                    score += 1
-                    x = min(edge.src.x, edge.dest.x)
-                    if addPaint:
-                        self.squares[(x, edge.src.y - 1)] = self.getTurn()
-            if (Edge(Vertex(edge.src.x, edge.src.y), \
-                     Vertex(edge.src.x, edge.src.y + 1)) in edgeSet and \
-                Edge(Vertex(edge.dest.x, edge.dest.y), \
-                     Vertex(edge.dest.x, edge.dest.y + 1)) in edgeSet and \
-                Edge(Vertex(edge.src.x, edge.src.y + 1), \
-                     Vertex(edge.dest.x, edge.dest.y + 1)) in edgeSet):
-                    score += 1
-                    x = min(edge.src.x, edge.dest.x)
-                    if addPaint:
-                        self.squares[(x, edge.src.y)] = self.getTurn()
-            return score
-        else: #Vertical line
-            score = 0
-            if (Edge(Vertex(edge.src.x, edge.src.y), \
-                     Vertex(edge.src.x - 1, edge.src.y)) in edgeSet and \
-                Edge(Vertex(edge.dest.x, edge.dest.y), \
-                     Vertex(edge.dest.x - 1, edge.dest.y)) in edgeSet and \
-                Edge(Vertex(edge.src.x - 1, edge.src.y), \
-                     Vertex(edge.dest.x - 1, edge.dest.y)) in edgeSet):
-                    score += 1
-                    y = min(edge.src.y, edge.dest.y)
-                    if addPaint:
-                        self.squares[(edge.src.x - 1, y)] = self.getTurn()
-            if (Edge(Vertex(edge.src.x, edge.src.y), \
-                     Vertex(edge.src.x + 1, edge.src.y)) in edgeSet and \
-                Edge(Vertex(edge.dest.x, edge.dest.y), \
-                     Vertex(edge.dest.x + 1, edge.dest.y)) in edgeSet and \
-                Edge(Vertex(edge.src.x + 1, edge.src.y), \
-                     Vertex(edge.dest.x + 1, edge.dest.y)) in edgeSet):
-                    score += 1
-                    y = min(edge.src.y, edge.dest.y)
-                    if addPaint:
-                        self.squares[(edge.src.x, y)] = self.getTurn()
-            return score
-
-    # Adds an edge to the state and updates internals
-    # Pass game for printing purposes
-    def addEdge(self, edge):
-        self.edges.append(edge)
-        self.moves.remove(edge)
-
-        self.grid[edge.src.x][edge.src.y].edges.append(edge)
-        self.grid[edge.dest.x][edge.dest.y].edges.append(edge)
-
-
-        score = self._detectSquare(edge)
-        self.score += score * self.getTurn()
-        if score == 0: # No boxes made
-            self.turn *= -1
-        return score
+    ###############################################################
+    ########################## ACCESSORS ##########################
+    ###############################################################
 
     def getValidMoves(self):
-        return self.moves
+        return self.validMoves_
 
     def getCaptureMoves(self):
-        captures = []
-        for move in self.moves:
-            if self._detectSquare(move, False) > 0:
-                captures.append(move)
-        return captures
-    
-    # Returns a list of moves that don't result in immediate capture
-    def getMovesWithoutCapture(self):
-        if len(self.getCaptureMoves()) != 0:
-            return []
-        nonCaptures = []
-        for move in self.moves:
-            other = self.generateSuccessor(move)
-            if len(other.getCaptureMoves()) == 0:
-                nonCaptures.append(move)
-        return nonCaptures
+        captureMoves = set()
+        for x in range(self.width_):
+            for y in range(self.height_):
+                box = self.grid.getBox(x, y)
+                if box.edgeCount() == 3:
+                    edgeType = box.getMissingEdges()[0]
+                    captureMoves.add(Move(x, y, edgeType))
+        return captureMoves
 
-    def getChains(self):
-        captures = self.getCaptureMoves() # For now, assume only 1
-        chain = []
-        if len(captures) == 0:
-            return []
-        if len(captures) != 1:
-            return []
-        else:
-            while len(captures) == 1:
-                move = captures[0]
-                chain.append(move)
-                successor = self.generateSuccessor(move)
-                captures = successor.getCaptureMoves()
-        if len(chain) > 1:
-            print chain
-        return chain
+    def getChainMoves(self):
+        chainMoves = set()
+        for x in range(self.width_):
+            for y in range(self.height_):
+                box = self.grid_.getBox(x, y)
+                chain = []
+                chainBox = None
+                if box.edgeCount() == 3:
+                    edgeType = box.getMissingEdges()[0]
+                    chain.append(Move(x, y, edgeType))
+                    chainX, chainY = structure.getNeighborCoordinates(x, y, edgeType)
+                    chainBox = self.grid_.getBox(chainX, chainY)
+                    while chainBox is not None and chainBox.edgeCount() == 2: # Half-open chains
+                        edges = chainBox.getMissingEdges()
+                        if edges[0] == structure.oppositeEdge(edgeType):
+                            edgeType = edges[1]
+                        else:
+                            edgeType = edges[0]
+                        chain.append(Move(chainX, chainY, edgeType))
+                        chainX, chainY = \
+                                structure.getNeighborCoordinates(chainX, chainY, edgeType)
+                        chainBox = self.grid_.getBox(chainX, chainY)
+                if chainBox is not None and chainBox.edgeCount() == 3: # Closed chain
+                    if len(chain) > 0:
+                        chainMoves.add(chain[0])
+                        if len(chain) == 3: # 4 hard-hearted handout
+                            chainMoves.add(chain[1])
+                else: # Half-open chain
+                    if len(chain) == 1 or len(chain) >= 3:
+                        chainMoves.add(chain[0])
+                    elif len(chain) == 2: # Hard-hearted handout
+                        chainMoves.add(chain[0])
+                        chainMoves.add(chain[-1])
+        return chainMoves
 
-    def isEnd(self):
-        return len(self.moves) == 0
+    # Returns the set of moves that will not result in a possible capture
+    def getMovesWithoutCaptures(self):
+        moves = set()
+        for x in range(self.width_):
+            for y in range(self.height_):
+                box = self.grid_.getBox(x, y)
+                if box.edgeCount() <= 1:
+                    edges = box.getMissingEdges()
+                    for edge in edges:
+                        neighborX, neighborY = \
+                                structure.getNeighborCoordinates(x, y, edge)
+                        neighbor = self.grid_.getBox(neighborX, neighborY)
+                        if neighbor is None or neighbor.edgeCount() <= 1:
+                            moves.add(Move(x, y, edge))
+        return moves
+
+    def getScore(self):
+        return self.score_
+
+    def getTurn(self):
+        return self.turn_
+
+    def getWidth(self):
+        return self.width_
+
+    def getHeight(self):
+        return self.height_
+
+    def getGrid(self):
+        return self.grid_
+
+    ###############################################################
+    ######################## PRIVATE FXNS #########################
+    ###############################################################
+
+    def __createValidMoves(self):
+        self.validMoves_ = set()
+        for x in range(self.width_):
+            for y in range(self.height_):
+                self.validMoves_.add(Move(x, y, structure.Edge.LEFT))
+                self.validMoves_.add(Move(x, y, structure.Edge.TOP))
+
+        for x in range(self.width_):
+            self.validMoves_.add(Move(x, self.height_ - 1, structure.Edge.BOTTOM))
+
+        for y in range(self.height_):
+            self.validMoves_.add(Move(self.width_ - 1, y, structure.Edge.RIGHT))
 
     def __str__(self):
-        return "Board: (%d, %d), Score: %d, Edges: %s, Moves: %s" % (self.width, self.height, self.score, str(self.edges), str(self.moves))
+        return str(self.grid_)
 
-    """
-    Allows two states to be compared.
-    """
-    def __eq__( self, other ):
-        if other == None: return False
-        # TODO Check for type of other
-        if not self.width == other.width: return False
-        if not self.height == other.height: return False
-        if not self.score == other.score: return False
-        if not self.turn == other.turn: return False
-        if not self.edges == other.edges: return False
+    def __hash__(self):
+        return hash((self.grid_, self.turn_, self.score_))
+
+    def __eq__(self, other):
+        if other is None and self is not None:
+            return False
+        if self is None and other is not None:
+            return False
+        if self is None and other is None:
+            return True
+        if self.width_ != other.width_:
+            return False
+        if self.height_ != other.height_:
+            return False
+        if self.turn_ != other.turn_:
+            return False
+        if self.grid_ != other.grid_:
+            return False
         return True
 
-    """
-    Allows states to be keys of dictionaries.
-    """
-    def __hash__( self ):
-       return int((hash(self.width) + 29*hash(self.height) + 13*hash(self.score) + 113* hash(self.turn) + 7 * hash(tuple(self.edges))) % 1048575 )
+###############################################################
+############################# GAME ############################
+###############################################################
 
 class DotBoxGame:
     # Width and height do NOT specify edges.
@@ -216,78 +171,45 @@ class DotBoxGame:
     # | | << This is a 1x1 grid
     # +-+
     def __init__(self, width, height, playerOneAgent, playerTwoAgent, verbose = 3):
-        self.playerOneAgent = playerOneAgent
-        self.playerTwoAgent = playerTwoAgent
-        self.state = DotBoxGameState(game = self, \
-                                    width = width, \
-                                    height = height, \
-                                    score = 0, \
-                                    turn = 1, \
-                                    edges = [])
-        self.verbose = verbose
-        self.winner = 0
-        self.squares = {}
-
-    # Returns the number of boxes made from adding this edge
-    # src and dest must be vertices that are in bounds
-    def addEdge(self, edge):
-        # Make sure that source and dest are in bounds
-        src = edge.src
-        dest = edge.dest
-        if not util.boundCheck(src.x, 0, self.state.getWidth()) or \
-           not util.boundCheck(src.y, 0, self.state.getHeight()) or \
-           not util.boundCheck(dest.x, 0, self.state.getWidth()) or \
-           not util.boundCheck(dest.y, 0, self.state.getHeight()):
-           raise ValueError("((%d, %d), (%d, %d)) is not in bounds"  \
-                  % (src.x, src.y, dest.x, dest.y))
-        self.state = self.state.generateSuccessor(edge)
+        self.playerOneAgent_ = playerOneAgent
+        self.playerTwoAgent_ = playerTwoAgent
+        self.state_ = DotBoxGameState(width = width, \
+                                     height = height, \
+                                     score = 0, \
+                                     turn = 1)
+        self.verbose_ = verbose
+        self.winner_ = 0
 
     def playGame(self):
-        # reinitialize all of the internal states
-        self.state._restart()
+        # Reinitialize all of the internal states
+        self.state_.reset()
 
-        while not self.state.isEnd():
-            playerNumber = 1 if (self.state.getTurn() == 1) else 2
-            if self.verbose >= 3:
-                util.printGame(self.state)
+        while not self.state_.isEnd(): 
+            playerNumber = 1 if (self.state_.getTurn() == 1) else 2
+            if self.verbose_ >= 3:
+                util.printGame(self.state_)
                 print "Player %d: " % (playerNumber)
-                print "Score: %d" % self.state.getScore()
+                print "Score: %d" % self.state_.getScore()
             if (playerNumber == 1):
-                edge = self.playerOneAgent.getAction(self.state)
+                move = self.playerOneAgent_.getAction(self.state_)
             else: 
-                edge = self.playerTwoAgent.getAction(self.state)
-            self.addEdge(edge)
-            #pause = raw_input()
+                move = self.playerTwoAgent_.getAction(self.state_)
+            self.state_ = self.state_.generateSuccessor(move)
 
-        if self.state.getScore() < 0:
-            self.winner = -1
-        elif self.state.getScore() > 0:
-            self.winner = 1
+        if self.state_.getScore() < 0:
+            self.winner_ = -1
+            self.playerOneAgent_.isWinner(False)
+            self.playerTwoAgent_.isWinner(True)
+        elif self.state_.getScore() > 0:
+            self.winner_ = 1
+            self.playerOneAgent_.isWinner(True)
+            self.playerTwoAgent_.isWinner(False)
         else: # Tie
-            self.winner = 0
-        if self.verbose >= 2:
-            print "Winner is: ", 1 if self.winner > 0 else 2
-            print "Score: %d" % self.state.getScore()
-            util.printGame(self.state)
-            
-#playerOne = agents.RandomAgent(1)
-playerOne = agents.HumanAgent(1)
-#playerOne = agents.MinimaxAgent(agents.evalState, 1, 1)
-print agents.evalState
-playerTwo = agents.MinimaxAgent(agents.evalState, 2, -1, verbose = 1)
-game = DotBoxGame(4, 5, playerOne, playerTwo, verbose = 3)
-game.playGame()
-firstWins = 0
-secondWins = 0
-NUM_TRIALS = 10
-for i in range(NUM_TRIALS):
-    game.playGame()
-    if (i % (NUM_TRIALS/10) == 0):
-        print "%d%% finished." % (float(i)/NUM_TRIALS * 100)
-    if (game.winner == 1):
-        firstWins += 1
-    if (game.winner == -1):
-        secondWins += 1
-print "Win rate is %f%%" % (float(secondWins) / NUM_TRIALS * 100)
-print "First won: %d times" % firstWins
-print "Second won: %d times" % secondWins
+            self.winner_ = 0
+        if self.verbose_ >= 2:
+            print "Winner is: ", 1 if self.winner_ > 0 else 2
+            print "Score: %d" % self.state_.getScore()
+            util.printGame(self.state_)
+
+    def getWinner(self):
+        return self.winner_

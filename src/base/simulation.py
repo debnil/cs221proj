@@ -1,17 +1,17 @@
-import newDotsAndBoxes
-import newAgents
+import dotsAndBoxes
+import agents
 import structure
 
-#agentOne = newAgents.HumanAgent(1)
-agentOne = newAgents.MinimaxAgent(evaluationFn = newAgents.basicEval, \
+#agentOne = agents.HumanAgent(1)
+agentOne = agents.MinimaxAgent(evaluationFn = agents.basicEval, \
                                   depth = 1, \
                                   player = 1, \
                                   verbose = 2)
-agentTwo = newAgents.MinimaxAgent(evaluationFn = newAgents.basicEval, \
+agentTwo = agents.MinimaxAgent(evaluationFn = agents.basicEval, \
                                   depth = 1, \
                                   player = -1, \
                                   verbose = 2)
-game = newDotsAndBoxes.DotBoxGame(5, 4, agentOne, agentTwo, verbose = 3)
+game = dotsAndBoxes.DotBoxGame(5, 4, agentOne, agentTwo, verbose = 3)
 firstWins = 0
 secondWins = 0
 NUM_TRIALS = 10

@@ -1,37 +1,45 @@
-from graph import Vertex
+import structure
 
-# Prints a DotBoxGame
-def printGame(gameState, numTab = 0):
-    for _ in range(numTab):
-        print "\t",
-    print "Turn: %d" % (gameState.getTurn())
-    for y in range(gameState.getHeight()):
-        for _ in range(numTab):
-            print "\t",
-        for x in range(gameState.getWidth()): # Print the first line
-            currVertex = gameState.grid[x][y]
-            print "+",
-            edgeChar = " "
-            for edge in currVertex.edges:
-                if edge.containsVertex(Vertex(currVertex.x+1, currVertex.y)):
-                    edgeChar = "-"
-            print edgeChar,
-        print ""
-        for _ in range(numTab):
-            print "\t",
+def printGame(gameState):
+    assert gameState.getWidth() > 0
+    assert gameState.getHeight() > 0
+    for y in range(gameState.getHeight()): # TODO: Use real fxn
+        print "+",
         for x in range(gameState.getWidth()):
-            currVertex = gameState.grid[x][y]
-            edgeChar = " "
-            for edge in currVertex.edges:
-                if edge.containsVertex(Vertex(currVertex.x, currVertex.y+1)):
-                    edgeChar = "|"
-            spacer = " "
-            if ((x, y) in gameState.squares):
-                spacer = "1" if gameState.squares[(x,y)] == 1 else "2"
-            print edgeChar, spacer,
+            currBox = gameState.getGrid().getBox(x, y)
+            if currBox.getEdge(structure.Edge.TOP):
+                print "-",
+            else:
+                print " ",
+            print "+",
         print ""
+        # Print the left most
+        currBox = gameState.getGrid().getBox(0, y)
+        if currBox.getEdge(structure.Edge.LEFT):
+            print "|",
+        else:
+            print " ",
+        # Print the middle row
+        for x in range(0, gameState.getWidth()):
+            currBox = gameState.getGrid().getBox(x, y)
+            owner = currBox.getOwner()
+            if owner == 0:
+                print " ",
+            else:
+                print owner,
+            if currBox.getEdge(structure.Edge.RIGHT):
+                print "|",
+            else:
+                print " ",
+        print ""
+    print "+",
+    for x in range(gameState.getWidth()): # Print the bottom row
+        currBox = gameState.getGrid().getBox(x, gameState.getHeight() - 1)
+        if currBox.getEdge(structure.Edge.BOTTOM):
+            print "-",
+        else:
+            print " ",
+        print "+",
+    print ""
 
-def boundCheck(x, minBound, maxBound):
-    if (x < minBound or x > maxBound):
-        return False
-    return True
+
