@@ -168,6 +168,23 @@ class DotBoxGameState:
                 nonCaptures.append(move)
         return nonCaptures
 
+    def getChains(self):
+        captures = self.getCaptureMoves() # For now, assume only 1
+        chain = []
+        if len(captures) == 0:
+            return []
+        if len(captures) != 1:
+            return []
+        else:
+            while len(captures) == 1:
+                move = captures[0]
+                chain.append(move)
+                successor = self.generateSuccessor(move)
+                captures = successor.getCaptureMoves()
+        if len(chain) > 1:
+            print chain
+        return chain
+
     def isEnd(self):
         return len(self.moves) == 0
 
