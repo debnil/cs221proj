@@ -3,6 +3,7 @@ import util
 import structure
 import move
 import operator
+from transpositionTable import TranspositionTable
 
 class Agent:
     def __init__(self, player):
@@ -51,7 +52,7 @@ class MinimaxAgent(Agent):
         self.depth_ = depth
         self.player_ = player # Player 1(1), Player 2(-1)
         self.verbose_ = verbose
-        self.cache_ = {} # [Game State, Move] -> Score of move
+        self.cache_ = TranspositionTable() # [Game State, Move] -> Delta score of move
         self.currGameMoves_ = []
 
     def getAction(self, gameState):
@@ -75,19 +76,16 @@ class MinimaxAgent(Agent):
                 else:
                     moveSet = gameState.getValidMoves()
 
-                #if self.calculatedDepth == depth and len(moveSet) == 1:
-                #    return 0, moveSet.pop()
-
                 # TODO: Sort this properly
                 for move in sorted(moveSet):
                     # TODO: Make this score agnostic
-                    cacheKey = (gameState, depth, gameState.getScore(), move)
+                    cacheKey = (gameState, depth, move)
                     successor = gameState.generateSuccessor(move)
-                    if cacheKey in self.cache_:
-                        score = self.cache_[cacheKey], move
+                    if self.cache_.containsKey(cacheKey):
+                        score = gameState.getScore() + self.cache_.value(cacheKey), move
                     else:
                         score = V_opt(successor, depth, alpha, beta)[0], move
-                        self.cache_[cacheKey] = score[0]
+                        self.cache_.addKey(cacheKey, score[0] - gameState.getScore())
                     V = max(V, (score[0], move), key=operator.itemgetter(0))
                     alpha = max(alpha, V[0]) # Update alpha
                     if self.verbose_ >= 3:
@@ -102,8 +100,6 @@ class MinimaxAgent(Agent):
                             print "Depth: %d" % depth
                             print "Pruned"
                         break
-                #if self.calculatedDepth == depth:
-                #    print "Number of moves remaining: ", len(moveSet)
 
                 return V
                 
@@ -122,7 +118,12 @@ class MinimaxAgent(Agent):
                     newDepth = depth - 1
                     if successor.getTurn() != self.player_: # Still opp turn
                         newDepth = depth
-                    score = V_opt(successor, newDepth, alpha, beta)[0], move
+                    cacheKey = (gameState, depth, move)
+                    if self.cache_.containsKey(cacheKey):
+                        score = gameState.getScore() + self.cache_.value(cacheKey), move
+                    else:
+                        score = V_opt(successor, newDepth, alpha, beta)[0], move
+                        self.cache_.addKey(cacheKey, score[0] - gameState.getScore())
                     V = min(V, (score[0], move), key=operator.itemgetter(0))
                     beta = min(beta, score[0]) # Update beta
                     if self.verbose_ >= 3:
@@ -156,10 +157,8 @@ class MinimaxAgent(Agent):
     def isWinner(self, value):
         if not value:
             for move in self.currGameMoves_:
-                if move in self.cache_:
-                    self.cache_[move] -= 1
-                else:
-                    print "Somehow not in cache"
+                if self.cache_.containsKey(move):
+                    self.cache_.updateTable(move, self.cache_.value(move) - 1)
         self.currGameMoves_ = []
 
 def basicEval(player, gameState):
