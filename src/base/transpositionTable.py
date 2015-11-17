@@ -6,7 +6,7 @@ class TranspositionTable():
         self.cache_ = {}
         # Keep track of the number of times key has been queried
         self.accessCount_ = {} 
-        self.MAX_CACHE_SIZE = 7000000 # Cache up to 7,000,000 entries
+        self.MAX_CACHE_SIZE = 500000 # Cache up to 500,000 entries
         self.PRUNE_RATE = 0.2
 
     def containsKey(self, key):
@@ -36,7 +36,7 @@ class TranspositionTable():
         toDelete = []
         for key in sorted(self.accessCount_, key=self.accessCount_.get):
             toDelete.append(key)
-            if len(toDelete) > self.PRUNE_RATE * self.MAX_CACHE_SIZE:
+            if len(toDelete) > (self.PRUNE_RATE * self.MAX_CACHE_SIZE):
                 break
 
         for key in toDelete:

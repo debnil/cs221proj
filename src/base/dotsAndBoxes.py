@@ -183,9 +183,11 @@ class DotBoxGame:
         self.verbose_ = verbose
         self.winner_ = 0
 
-    def playGame(self):
+    def playGame(self, fileName = None, load = False):
         # Reinitialize all of the internal states
         self.state_.reset()
+        if load:
+            self.loadStateFromFile(fileName)
 
         while not self.state_.isEnd(): 
             playerNumber = 1 if (self.state_.getTurn() == 1) else 2
@@ -216,3 +218,11 @@ class DotBoxGame:
 
     def getWinner(self):
         return self.winner_
+
+    def loadStateFromFile(self, fileName):
+        stateFile = open(fileName, 'r')
+        for line in stateFile:
+            if line[0] == '#': # Skip comments
+                continue
+            move = Move.stringToMove(line)
+            self.state_ = self.state_.generateSuccessor(move)
