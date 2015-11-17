@@ -3,6 +3,7 @@ import util
 import structure
 import move
 import operator
+from move import Move
 from transpositionTable import TranspositionTable
 
 class Agent:
@@ -58,7 +59,7 @@ class MinimaxAgent(Agent):
     def getAction(self, gameState):
         def V_opt(gameState, depth, alpha, beta): # Alpha-beta pruning
             if gameState.isEnd():
-                return self.evalFn_(self.player_, gameState), None
+                return self.evalFn_(self.player_, gameState), None, True
                 #score = gameState.getScore()
                 #if score * self.player_ > 0:
                 #    return float("inf"), None
@@ -67,9 +68,9 @@ class MinimaxAgent(Agent):
                 #else:
                 #    return float("-inf"), None
             elif (depth == 0):
-                return self.evalFn_(self.player_, gameState), None
+                return self.evalFn_(self.player_, gameState), None, True
             elif (gameState.getTurn() == self.player_): # Agent's turn
-                V = float("-inf"), None
+                V = float("-inf"), None, True
                 chainMoves = gameState.getChainMoves() 
                 if len(chainMoves) > 0:
                     moveSet = chainMoves
@@ -82,30 +83,41 @@ class MinimaxAgent(Agent):
                     cacheKey = (gameState, depth, move)
                     successor = gameState.generateSuccessor(move)
                     if self.cache_.containsKey(cacheKey):
-                        score = gameState.getScore() + self.cache_.value(cacheKey), move
+                        #if self.calculatedDepth == depth and move == Move(0, 1, 1):
+                        #    print "Accessing cache."
+                        score = self.cache_.value(cacheKey)
+                        cachable = True
                     else:
-                        score = V_opt(successor, depth, alpha, beta)[0], move
-                        self.cache_.addKey(cacheKey, score[0] - gameState.getScore())
-                    V = max(V, (score[0], move), key=operator.itemgetter(0))
+                        score, _, cachable = V_opt(successor, depth, alpha, beta)
+                        #self.cache_.addKey(cacheKey, score)
+                        #if self.calculatedDepth > depth:
+                        #    self.cache_.addKey(cacheKey, score[0])
+
+                        #if beta > score[0]: # Only cache if you don't prune!
+                        #    self.cache_.addKey(cacheKey, score[0])
+                    V = max(V, (score, move, cachable), key=operator.itemgetter(0))
                     alpha = max(alpha, V[0]) # Update alpha
                     if self.verbose_ >= 3:
-                        print "Calculated score for agent: ", score
+                        print "Calculated score for agent: ", score, move
                         print "Depth: ", depth
                         print "Alpha: ", alpha
                         print "Beta: ", beta
                     if self.verbose_ >= 4:
                         util.printGame(successor)
                     if beta <= alpha: # Prune
+                        V = (V[0], V[1], False)
                         if self.calculatedDepth == depth:
                             print "Depth: %d" % depth
                             print "Pruned"
                         break
+                    if not self.cache_.containsKey(cacheKey) and cachable:
+                        self.cache_.addKey(cacheKey, score)
 
                 return V
                 
 
             else: # Opponent's turn
-                V = float("inf"), None
+                V = float("inf"), None, True
 
                 chainMoves = gameState.getChainMoves() 
                 if len(chainMoves) > 0:
@@ -120,21 +132,29 @@ class MinimaxAgent(Agent):
                         newDepth = depth
                     cacheKey = (gameState, depth, move)
                     if self.cache_.containsKey(cacheKey):
-                        score = gameState.getScore() + self.cache_.value(cacheKey), move
+                        score = self.cache_.value(cacheKey)
+                        cachable = True
                     else:
-                        score = V_opt(successor, newDepth, alpha, beta)[0], move
-                        self.cache_.addKey(cacheKey, score[0] - gameState.getScore())
-                    V = min(V, (score[0], move), key=operator.itemgetter(0))
-                    beta = min(beta, score[0]) # Update beta
+                        score, _, cachable = V_opt(successor, newDepth, alpha, beta)
+                        #self.cache_.addKey(cacheKey, score)
+                        #if self.calculatedDepth > depth:
+                        #    self.cache_.addKey(cacheKey, score[0])
+                        #if alpha < score[0]: # Only cache if you don't prune!
+                        #    self.cache_.addKey(cacheKey, score[0])
+                    V = min(V, (score, move, cachable), key=operator.itemgetter(0))
+                    beta = min(beta, score) # Update beta
                     if self.verbose_ >= 3:
-                        print "Calculated score for opp: ", score
+                        print "Calculated score for opp: ", score, move
                         print "Depth: ", depth
                         print "Alpha: ", alpha
                         print "Beta: ", beta
                     if self.verbose_ >= 4:
                         util.printGame(successor)
                     if beta <= alpha: #Prune
+                        V = (V[0], V[1], False)
                         break
+                    if not self.cache_.containsKey(cacheKey) and cachable:
+                        self.cache_.addKey(cacheKey, score)
                 return V
 
         movesWithoutCaptures = gameState.getMovesWithoutCaptures()
@@ -146,7 +166,7 @@ class MinimaxAgent(Agent):
             self.calculatedDepth = self.depth_
         if self.verbose_ >= 1:
             print "Searching %d deep" % self.calculatedDepth
-        score, action = V_opt(gameState, self.calculatedDepth, float("-inf"), float("inf"))
+        score, action, _ = V_opt(gameState, self.calculatedDepth, float("-inf"), float("inf"))
 
         self.currGameMoves_.append((gameState, self.calculatedDepth, gameState.getScore(), action))
         print "Score: %f, Action: %s" % (score, action)
