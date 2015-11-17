@@ -142,7 +142,7 @@ class DotBoxGameState:
         return str(self.grid_)
 
     def __hash__(self):
-        return hash((self.grid_, self.turn_, self.score_))
+        return hash((self.grid_, self.turn_))
 
     def __eq__(self, other):
         if other is None and self is not None:

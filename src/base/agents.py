@@ -74,11 +74,16 @@ class MinimaxAgent(Agent):
                 chainMoves = gameState.getChainMoves() 
                 if len(chainMoves) > 0:
                     moveSet = chainMoves
-                else:
-                    moveSet = gameState.getValidMoves()
-
+                else: # Order the rest of the moves
+                    movesWithoutCapture = gameState.getMovesWithoutCaptures()
+                    allValidMoves = gameState.getValidMoves()
+                    moveSet = []
+                    for move in movesWithoutCapture:
+                        moveSet.append(move)
+                    for move in allValidMoves - movesWithoutCapture:
+                        moveSet.append(move)
                 # TODO: Sort this properly
-                for move in sorted(moveSet):
+                for move in moveSet:
                     # TODO: Make this score agnostic
                     cacheKey = (gameState, depth, move)
                     successor = gameState.generateSuccessor(move)
@@ -99,9 +104,6 @@ class MinimaxAgent(Agent):
                         util.printGame(successor)
                     if beta <= alpha: # Prune
                         V = (V[0], V[1], False) # Don't cache if pruned
-                        if self.calculatedDepth == depth:
-                            print "Depth: %d" % depth
-                            print "Pruned"
                         break
                 return V
                 
@@ -117,10 +119,10 @@ class MinimaxAgent(Agent):
 
                 for move in sorted(moveSet):
                     successor = gameState.generateSuccessor(move)
+                    cacheKey = (gameState, depth, move)
                     newDepth = depth - 1
                     if successor.getTurn() != self.player_: # Still opp turn
                         newDepth = depth
-                    cacheKey = (gameState, depth, move)
                     if self.cache_.containsKey(cacheKey):
                         score = self.cache_.value(cacheKey)
                         cachable = True
@@ -153,7 +155,7 @@ class MinimaxAgent(Agent):
             print "Searching %d deep" % self.calculatedDepth
         score, action, _ = V_opt(gameState, self.calculatedDepth, float("-inf"), float("inf"))
 
-        self.currGameMoves_.append((gameState, self.calculatedDepth, gameState.getScore(), action))
+        self.currGameMoves_.append((gameState, self.calculatedDepth, action))
         print "Score: %f, Action: %s" % (score, action)
         return action
     
