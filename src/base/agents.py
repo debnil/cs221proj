@@ -83,19 +83,12 @@ class MinimaxAgent(Agent):
                     cacheKey = (gameState, depth, move)
                     successor = gameState.generateSuccessor(move)
                     if self.cache_.containsKey(cacheKey):
-                        #if self.calculatedDepth == depth and move == Move(0, 1, 1):
-                        #    print "Accessing cache."
                         score = self.cache_.value(cacheKey)
-                        cachable = True
                     else:
                         score, _, cachable = V_opt(successor, depth, alpha, beta)
-                        #self.cache_.addKey(cacheKey, score)
-                        #if self.calculatedDepth > depth:
-                        #    self.cache_.addKey(cacheKey, score[0])
-
-                        #if beta > score[0]: # Only cache if you don't prune!
-                        #    self.cache_.addKey(cacheKey, score[0])
-                    V = max(V, (score, move, cachable), key=operator.itemgetter(0))
+                        if cachable:
+                            self.cache_.addKey(cacheKey, score)
+                    V = max(V, (score, move, True), key=operator.itemgetter(0))
                     alpha = max(alpha, V[0]) # Update alpha
                     if self.verbose_ >= 3:
                         print "Calculated score for agent: ", score, move
@@ -105,14 +98,11 @@ class MinimaxAgent(Agent):
                     if self.verbose_ >= 4:
                         util.printGame(successor)
                     if beta <= alpha: # Prune
-                        V = (V[0], V[1], False)
+                        V = (V[0], V[1], False) # Don't cache if pruned
                         if self.calculatedDepth == depth:
                             print "Depth: %d" % depth
                             print "Pruned"
                         break
-                    if not self.cache_.containsKey(cacheKey) and cachable:
-                        self.cache_.addKey(cacheKey, score)
-
                 return V
                 
 
@@ -136,12 +126,9 @@ class MinimaxAgent(Agent):
                         cachable = True
                     else:
                         score, _, cachable = V_opt(successor, newDepth, alpha, beta)
-                        #self.cache_.addKey(cacheKey, score)
-                        #if self.calculatedDepth > depth:
-                        #    self.cache_.addKey(cacheKey, score[0])
-                        #if alpha < score[0]: # Only cache if you don't prune!
-                        #    self.cache_.addKey(cacheKey, score[0])
-                    V = min(V, (score, move, cachable), key=operator.itemgetter(0))
+                        if cachable:
+                            self.cache_.addKey(cacheKey, score)
+                    V = min(V, (score, move, True), key=operator.itemgetter(0))
                     beta = min(beta, score) # Update beta
                     if self.verbose_ >= 3:
                         print "Calculated score for opp: ", score, move
@@ -153,8 +140,6 @@ class MinimaxAgent(Agent):
                     if beta <= alpha: #Prune
                         V = (V[0], V[1], False)
                         break
-                    if not self.cache_.containsKey(cacheKey) and cachable:
-                        self.cache_.addKey(cacheKey, score)
                 return V
 
         movesWithoutCaptures = gameState.getMovesWithoutCaptures()

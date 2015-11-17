@@ -16,6 +16,9 @@ game = dotsAndBoxes.DotBoxGame(5, 4, agentOne, agentTwo, verbose = 3)
 if len(sys.argv) > 1:
     load = True
     fileName = sys.argv[1]
+else:
+    load = False
+    fileName = None
 firstWins = 0
 secondWins = 0
 NUM_TRIALS = 10
