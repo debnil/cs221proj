@@ -72,13 +72,14 @@ class MinimaxAgent(Agent):
         if len(chainMoves) > 0:
             moveSet = chainMoves
         else: # Order the rest of the moves
-            movesWithoutCapture = gameState.getMovesWithoutCaptures()
-            allValidMoves = gameState.getValidMoves()
-            moveSet = []
-            for move in movesWithoutCapture:
-                moveSet.append(move)
-            for move in allValidMoves - movesWithoutCapture:
-                moveSet.append(move)
+            moveSet = gameState.getValidMoves()
+            #movesWithoutCapture = gameState.getMovesWithoutCaptures()
+            #allValidMoves = gameState.getValidMoves()
+            #moveSet = []
+            #for move in movesWithoutCapture:
+            #    moveSet.append(move)
+            #for move in allValidMoves - movesWithoutCapture:
+            #    moveSet.append(move)
         return moveSet
 
     def getAction(self, gameState):
@@ -90,17 +91,19 @@ class MinimaxAgent(Agent):
             elif (gameState.getTurn() == self.player_): # Agent's turn
                 V = float("-inf"), None, True
                 moveSet = self.__getOrderedValidMoves(gameState)
-                currScore = self.evalFn_(self.player_, gameState)
+                #currScore = self.evalFn_(self.player_, gameState)
                 for move in moveSet:
                     # TODO: Make this score agnostic
-                    cacheKey = (gameState, depth, move)
+                    cacheKey = (gameState, depth, gameState.getScore(), move)
                     successor = gameState.generateSuccessor(move)
                     if self.cache_.containsKey(cacheKey):
-                        score = currScore + self.cache_.value(cacheKey)
+                        #score = currScore + self.cache_.value(cacheKey)
+                        score = self.cache_.value(cacheKey)
                     else:
                         score, _, cachable = V_opt(successor, depth, alpha, beta)
                         if cachable:
-                            self.cache_.addKey(cacheKey, score - currScore)
+                            #self.cache_.addKey(cacheKey, score - currScore)
+                            self.cache_.addKey(cacheKey, score)
                     V = max(V, (score, move, True), key=operator.itemgetter(0))
                     alpha = max(alpha, V[0]) # Update alpha
                     self.__printInternalScores()
@@ -111,19 +114,21 @@ class MinimaxAgent(Agent):
             else: # Opponent's turn
                 V = float("inf"), None, True
                 moveSet = self.__getOrderedValidMoves(gameState)
-                currScore = self.evalFn_(self.player_, gameState)
+                #currScore = self.evalFn_(self.player_, gameState)
                 for move in moveSet:
                     successor = gameState.generateSuccessor(move)
-                    cacheKey = (gameState, depth, move)
+                    cacheKey = (gameState, depth, gameState.getScore(), move)
                     newDepth = depth - 1
                     if successor.getTurn() != self.player_: # Still opp turn
                         newDepth = depth
                     if self.cache_.containsKey(cacheKey):
-                        score = currScore + self.cache_.value(cacheKey)
+                        #score = currScore + self.cache_.value(cacheKey)
+                        score = self.cache_.value(cacheKey)
                     else:
                         score, _, cachable = V_opt(successor, newDepth, alpha, beta)
                         if cachable:
-                            self.cache_.addKey(cacheKey, score - currScore)
+                            #self.cache_.addKey(cacheKey, score - currScore)
+                            self.cache_.addKey(cacheKey, score)
                     V = min(V, (score, move, True), key=operator.itemgetter(0))
                     beta = min(beta, score) # Update beta
                     self.__printInternalScores()
@@ -134,7 +139,7 @@ class MinimaxAgent(Agent):
 
         movesWithoutCaptures = gameState.getMovesWithoutCaptures()
         if len(movesWithoutCaptures) < 4:
-            self.calculatedDepth = self.depth_ + 1
+            self.calculatedDepth = self.depth_ + 2
         elif len(gameState.getChainMoves()) != 0 and len(gameState.getValidMoves()) < 10:
             self.calculatedDepth = self.depth_ + 1
         else:
