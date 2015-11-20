@@ -66,21 +66,18 @@ class MinimaxAgent(Agent):
         if self.verbose_ >= 4:
             util.printGame(successor)
 
-    def __getOrderedValidMoves(self, gameState):
+    def __getOrderedValidMoves(self, gameState, depth):
         ''' Returns iterable of valid moves from current game state using alpha-beta
         heuristic for ordering. Only uses chain moves if possible '''
         chainMoves = gameState.getChainMoves() 
         if len(chainMoves) > 0:
             moveSet = chainMoves
         else: # Order the rest of the moves
-            #moveSet = gameState.getValidMoves()
+            moveSet = list(gameState.getValidMoves())
             movesWithoutCapture = gameState.getMovesWithoutCaptures()
-            allValidMoves = gameState.getValidMoves()
-            moveSet = []
-            for move in movesWithoutCapture:
-                moveSet.append(move)
-            for move in allValidMoves - movesWithoutCapture:
-                moveSet.append(move)
+            moveSet.sort(key = lambda(move): \
+                    move in movesWithoutCapture or \
+                    self.cache_.containsKey((gameState, depth, move)), reverse = True)
         return moveSet
 
     def getAction(self, gameState):
@@ -91,13 +88,11 @@ class MinimaxAgent(Agent):
                 return self.evalFn_(self.player_, gameState), None, True
             elif (gameState.getTurn() == self.player_): # Agent's turn
                 V = float("-inf"), None, True
-                moveSet = self.__getOrderedValidMoves(gameState)
+                moveSet = self.__getOrderedValidMoves(gameState, depth)
                 currScore = self.evalFn_(self.player_, gameState)
                 for move in moveSet:
-                    if move == Move(4, 0, 2) and depth == 4:
-                        print "Confusion ensues"
                     # TODO: Make this score agnostic
-                    cacheKey = (gameState, depth, gameState.getScore(), move)
+                    cacheKey = (gameState, depth, move)
                     successor = gameState.generateSuccessor(move)
                     if self.cache_.containsKey(cacheKey):
                         score = currScore + self.cache_.value(cacheKey)
@@ -109,21 +104,17 @@ class MinimaxAgent(Agent):
                     V = max(V, (score, move, cachable), key=operator.itemgetter(0))
                     alpha = max(alpha, V[0]) # Update alpha
                     self.__printInternalScores(score, move, depth, alpha, beta, successor)
-                    if move == Move(4, 0, 2) and depth == 4:
-                        print score
                     if beta <= alpha: # Prune
                         V = (V[0], V[1], False) # Don't cache if pruned
                         break
                 return V
             else: # Opponent's turn
                 V = float("inf"), None, True
-                moveSet = self.__getOrderedValidMoves(gameState)
+                moveSet = self.__getOrderedValidMoves(gameState, depth)
                 currScore = self.evalFn_(self.player_, gameState)
                 for move in moveSet:
                     successor = gameState.generateSuccessor(move)
-                    #if hash(successor) == 7083791912649991135:
-                    #    pdb.set_trace()
-                    cacheKey = (gameState, depth, gameState.getScore(), move)
+                    cacheKey = (gameState, depth, move)
                     newDepth = depth - 1
                     if successor.getTurn() != self.player_: # Still opp turn
                         newDepth = depth
@@ -132,9 +123,6 @@ class MinimaxAgent(Agent):
                         cachable = True # Can cache values that have been cached
                     else:
                         score, _, cachable = V_opt(successor, newDepth, alpha, beta)
-                        #if move == Move(4, 0, 2):
-                        #    print "I might be the culprit"
-                        #    pdb.set_trace()
                         if cachable:
                             self.cache_.addKey(cacheKey, score - currScore)
                     # Non-cachability should propagate upwards
