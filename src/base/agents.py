@@ -3,6 +3,7 @@ import util
 import structure
 import move
 import operator
+import pdb
 from move import Move
 from transpositionTable import TranspositionTable
 
@@ -56,7 +57,7 @@ class MinimaxAgent(Agent):
         self.cache_ = TranspositionTable() # [Game State, Move] -> Delta score of move
         self.currGameMoves_ = []
 
-    def __printInternalScores(self):
+    def __printInternalScores(self, score, move, depth, alpha, beta, successor):
         if self.verbose_ >= 3:
             print "Calculated score for agent: ", score, move
             print "Depth: ", depth
@@ -72,14 +73,14 @@ class MinimaxAgent(Agent):
         if len(chainMoves) > 0:
             moveSet = chainMoves
         else: # Order the rest of the moves
-            moveSet = gameState.getValidMoves()
-            #movesWithoutCapture = gameState.getMovesWithoutCaptures()
-            #allValidMoves = gameState.getValidMoves()
-            #moveSet = []
-            #for move in movesWithoutCapture:
-            #    moveSet.append(move)
-            #for move in allValidMoves - movesWithoutCapture:
-            #    moveSet.append(move)
+            #moveSet = gameState.getValidMoves()
+            movesWithoutCapture = gameState.getMovesWithoutCaptures()
+            allValidMoves = gameState.getValidMoves()
+            moveSet = []
+            for move in movesWithoutCapture:
+                moveSet.append(move)
+            for move in allValidMoves - movesWithoutCapture:
+                moveSet.append(move)
         return moveSet
 
     def getAction(self, gameState):
@@ -91,22 +92,25 @@ class MinimaxAgent(Agent):
             elif (gameState.getTurn() == self.player_): # Agent's turn
                 V = float("-inf"), None, True
                 moveSet = self.__getOrderedValidMoves(gameState)
-                #currScore = self.evalFn_(self.player_, gameState)
+                currScore = self.evalFn_(self.player_, gameState)
                 for move in moveSet:
+                    if move == Move(4, 0, 2) and depth == 4:
+                        print "Confusion ensues"
                     # TODO: Make this score agnostic
                     cacheKey = (gameState, depth, gameState.getScore(), move)
                     successor = gameState.generateSuccessor(move)
                     if self.cache_.containsKey(cacheKey):
-                        #score = currScore + self.cache_.value(cacheKey)
-                        score = self.cache_.value(cacheKey)
+                        score = currScore + self.cache_.value(cacheKey)
+                        cachable = True # Can cache values that have been cached
                     else:
                         score, _, cachable = V_opt(successor, depth, alpha, beta)
                         if cachable:
-                            #self.cache_.addKey(cacheKey, score - currScore)
-                            self.cache_.addKey(cacheKey, score)
-                    V = max(V, (score, move, True), key=operator.itemgetter(0))
+                            self.cache_.addKey(cacheKey, score - currScore)
+                    V = max(V, (score, move, cachable), key=operator.itemgetter(0))
                     alpha = max(alpha, V[0]) # Update alpha
-                    self.__printInternalScores()
+                    self.__printInternalScores(score, move, depth, alpha, beta, successor)
+                    if move == Move(4, 0, 2) and depth == 4:
+                        print score
                     if beta <= alpha: # Prune
                         V = (V[0], V[1], False) # Don't cache if pruned
                         break
@@ -114,24 +118,29 @@ class MinimaxAgent(Agent):
             else: # Opponent's turn
                 V = float("inf"), None, True
                 moveSet = self.__getOrderedValidMoves(gameState)
-                #currScore = self.evalFn_(self.player_, gameState)
+                currScore = self.evalFn_(self.player_, gameState)
                 for move in moveSet:
                     successor = gameState.generateSuccessor(move)
+                    #if hash(successor) == 7083791912649991135:
+                    #    pdb.set_trace()
                     cacheKey = (gameState, depth, gameState.getScore(), move)
                     newDepth = depth - 1
                     if successor.getTurn() != self.player_: # Still opp turn
                         newDepth = depth
                     if self.cache_.containsKey(cacheKey):
-                        #score = currScore + self.cache_.value(cacheKey)
-                        score = self.cache_.value(cacheKey)
+                        score = currScore + self.cache_.value(cacheKey)
+                        cachable = True # Can cache values that have been cached
                     else:
                         score, _, cachable = V_opt(successor, newDepth, alpha, beta)
+                        #if move == Move(4, 0, 2):
+                        #    print "I might be the culprit"
+                        #    pdb.set_trace()
                         if cachable:
-                            #self.cache_.addKey(cacheKey, score - currScore)
-                            self.cache_.addKey(cacheKey, score)
-                    V = min(V, (score, move, True), key=operator.itemgetter(0))
+                            self.cache_.addKey(cacheKey, score - currScore)
+                    # Non-cachability should propagate upwards
+                    V = min(V, (score, move, cachable), key=operator.itemgetter(0))
                     beta = min(beta, score) # Update beta
-                    self.__printInternalScores()
+                    self.__printInternalScores(score, move, depth, alpha, beta, successor)
                     if beta <= alpha: # Prune
                         V = (V[0], V[1], False)
                         break
