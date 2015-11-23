@@ -1,27 +1,29 @@
-import newDotsAndBoxes
-import newAgents
+import dotsAndBoxes
+import agents
 import structure
+import sys
 
-#agentOne = newAgents.HumanAgent(1)
-agentOne = newAgents.MinimaxAgent(evaluationFn = newAgents.basicEval, \
-                                  depth = 1, \
+#agentOne = agents.HumanAgent(1)
+agentOne = agents.MinimaxAgent(evaluationFn = agents.basicEval, \
+                                  depth = 2, \
                                   player = 1, \
                                   verbose = 2)
-agentTwo = newAgents.MinimaxAgent(evaluationFn = newAgents.basicEval, \
-                                  depth = 2, \
+agentTwo = agents.MinimaxAgent(evaluationFn = agents.basicEval, \
+                                  depth = 1, \
                                   player = -1, \
                                   verbose = 2)
-game = newDotsAndBoxes.DotBoxGame(5, 4, agentOne, agentTwo, verbose = 3)
+game = dotsAndBoxes.DotBoxGame(5, 5, agentOne, agentTwo, verbose = 3)
+if len(sys.argv) > 1:
+    load = True
+    fileName = sys.argv[1]
+else:
+    load = False
+    fileName = None
 firstWins = 0
 secondWins = 0
 NUM_TRIALS = 10
-#gridOne = structure.Grid(3, 5)
-#gridTwo = structure.Grid(3, 5)
-#gridTwo.addEdge(0, 0, structure.Edge.LEFT, 1)
-#print hash(gridOne)
-#print hash(gridTwo)
 for i in range(NUM_TRIALS):
-    game.playGame()
+    game.playGame(fileName, load)
     if (i % (NUM_TRIALS/10) == 0):
         print "%d%% finished." % (float(i)/NUM_TRIALS * 100)
     if (game.getWinner() == 1):

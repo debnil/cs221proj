@@ -7,6 +7,16 @@ class Move:
         self.y = y
         self.edgeType = edgeType
 
+    @staticmethod
+    def stringToMove(string):
+        string = string.replace("(", "")
+        string = string.replace(")", "").strip("\n")
+        x, y, edgeType = string.split(",")
+        x = int(x)
+        y = int(y)
+        edgeType = int(edgeType)
+        return Move(x, y, edgeType)
+
     def __eq__(self, other):
         if other is None and self is not None:
             return False

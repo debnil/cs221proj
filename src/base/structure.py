@@ -45,14 +45,15 @@ class Box():
         self.bottom_ = saved
 
     def __eq__(self, other):
-        if self.left_ != other.left:
+        if self.left_ != other.left_:
             return False
-        if self.right_ != other.right:
+        if self.right_ != other.right_:
             return False
-        if self.top_ != other.top:
+        if self.top_ != other.top_:
             return False
-        if self.bottom_ != other.bottom:
+        if self.bottom_ != other.bottom_:
             return False
+        return True
 
     def __ne__(self, other):
         return not self == other
@@ -198,3 +199,26 @@ class Grid():
         for col in self.grid_:
             hashList.append(tuple(col))
         return hash(tuple(hashList))
+
+    def __eq__(self, other):
+        if other is None and self is not None:
+            return False
+        if other is not None and self is None:
+            return False
+        if self is None and other is None:
+            return True
+        if self.width_ != other.width_:
+            return False
+        if self.height_ != other.height_:
+            return False
+        for x in range(self.width_):
+            for y in range(self.height_):
+                box = self.getBox(x, y)
+                otherBox = other.getBox(x, y)
+                if box != otherBox:
+                    print "Boxes at (%d, %d) are unequal." % (x, y)
+                    return False
+        return True
+
+    def __ne__(self, other):
+        return not self == other
