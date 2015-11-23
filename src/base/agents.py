@@ -76,8 +76,9 @@ class MinimaxAgent(Agent):
             moveSet = list(gameState.getValidMoves())
             movesWithoutCapture = gameState.getMovesWithoutCaptures()
             moveSet.sort(key = lambda(move): \
-                    move in movesWithoutCapture or \
-                    self.cache_.containsKey((gameState, depth, move)), reverse = True)
+                    random.random() if move in movesWithoutCapture else 0, reverse = True)
+                    #move in movesWithoutCapture or \
+                    #self.cache_.containsKey((gameState, depth, move)), reverse = True)
         return moveSet
 
     def getAction(self, gameState):

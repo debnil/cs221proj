@@ -12,7 +12,7 @@ agentTwo = agents.MinimaxAgent(evaluationFn = agents.basicEval, \
                                   depth = 1, \
                                   player = -1, \
                                   verbose = 2)
-game = dotsAndBoxes.DotBoxGame(5, 4, agentOne, agentTwo, verbose = 3)
+game = dotsAndBoxes.DotBoxGame(5, 5, agentOne, agentTwo, verbose = 3)
 if len(sys.argv) > 1:
     load = True
     fileName = sys.argv[1]
