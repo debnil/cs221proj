@@ -106,6 +106,12 @@ class DotBoxGameState:
                             moves.add(Move(x, y, edge))
         return moves
 
+    def getReward(self, move):
+        box = self.grid_.getBox(move.x, move.y)
+        if box.edgeCount() == 3:
+            return self.turn_
+        return 0
+
     def getScore(self):
         return self.score_
 

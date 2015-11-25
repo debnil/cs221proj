@@ -42,4 +42,7 @@ def printGame(gameState):
         print "+",
     print ""
 
-
+# Returns the dot product of two dicts with the same keys
+# Assumes that the two dictionaries have the same keys
+def dotProduct(weights, features):
+    return sum(weights[x] * features[x] for x in features) # Features may not have allof the keys that weights does
