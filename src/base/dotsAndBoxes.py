@@ -16,17 +16,20 @@ class DotBoxGameState:
         self.turn_ = turn # -1 for player 2, 1 for player 1
         self.grid_ = Grid(width, height) # Grid of boxes
         self.__createValidMoves()
-        
-    def generateSuccessor(self, move):
+
+    def makeMove(self, move):
         if move not in self.validMoves_:
             raise ValueError("(%d, %d), %s is not a valid move" % (x, y, edgeType))
-        new = copy.deepcopy(self)
-        player = 1 if new.getTurn() > 0 else 2
-        boxesMade = new.grid_.addEdge(move.x, move.y, move.edgeType, player)
-        new.validMoves_.remove(move) 
-        new.score_ += boxesMade * new.getTurn()
+        player = 1 if self.getTurn() > 0 else 2
+        boxesMade = self.grid_.addEdge(move.x, move.y, move.edgeType, player)
+        self.validMoves_.remove(move) 
+        self.score_ += boxesMade * self.getTurn()
         if boxesMade == 0:
-            new.turn_ *= -1
+            self.turn_ *= -1
+        
+    def generateSuccessor(self, move):
+        new = copy.deepcopy(self)
+        new.makeMove(move)
         return new
     
     def isEnd(self):
@@ -106,11 +109,16 @@ class DotBoxGameState:
                             moves.add(Move(x, y, edge))
         return moves
 
+    #TODO: Refactor this
     def getReward(self, move):
         box = self.grid_.getBox(move.x, move.y)
+        numBoxes = 0
         if box.edgeCount() == 3:
-            return self.turn_
-        return 0
+            numBoxes += 1
+        neighbor = self.grid_._Grid__getNeighbor(move.x, move.y, move.edgeType)
+        if neighbor is not None and neighbor.edgeCount() == 3:
+            numBoxes += 1
+        return numBoxes
 
     def getScore(self):
         return self.score_

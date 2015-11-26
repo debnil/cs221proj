@@ -168,15 +168,17 @@ class TDLearningAgent(MinimaxAgent):
         MinimaxAgent.__init__(self, TDLearningAgent.TDEval, depth, player, verbose)
         self.weights_ = {}
         self.featureExtractor_ = featureExtractor
-        self.NUM_TRIALS_PER_SIMULATION = 10
-        self.STEP_SIZE = 0.1
+        self.NUM_TRIALS_PER_SIMULATION = 1
+        self.REGULARIZATION = 0.9
+        self.STEP_SIZE = 0.01
         self.DISCOUNT = 1
 
     def TDEval(agent, gameState):
         for i in range(agent.NUM_TRIALS_PER_SIMULATION):
-            print "%d%% finished simulating." % (i*10)
+            #print "%d%% finished simulating." % (i*10)
             agent.__simulate(copy.deepcopy(gameState))
 
+        #print "Updated weights: ", agent.weights_
         return agent.getTDScore(agent.featureExtractor_(gameState))
         #return util.dotProduct(agent.weights_, agent.featureExtractor_(gameState))
 
@@ -194,8 +196,10 @@ class TDLearningAgent(MinimaxAgent):
         for feature in currFeatures:
             self.weights_[feature] -= \
                     self.STEP_SIZE*(self.getTDScore(currFeatures) - \
-                    (reward + self.DISCOUNT*self.getTDScore(nextFeatures)))\
+                    (reward + self.DISCOUNT*self.getTDScore(nextFeatures)) + self.REGULARIZATION*self.weights_[feature])\
                     * currFeatures[feature]
+        self.weights_["boxes owned by 1"] = -1
+        self.weights_["boxes owned by 2"] = 1
     
     # Simulates one game starting from an original game state to completion
     # and updates the weights appropriately
@@ -204,8 +208,8 @@ class TDLearningAgent(MinimaxAgent):
         currFeatures = self.featureExtractor_(state)
         while not state.isEnd():
             move = self.__TDGetAction(state)
-            reward = state.getReward(move)
-            state = state.generateSuccessor(move)
+            reward = state.getReward(move) * state.getTurn() * self.player_ 
+            state.makeMove(move) 
             nextFeatures = self.featureExtractor_(state)
             self.__updateWeights(currFeatures, nextFeatures, reward)
             currFeatures = nextFeatures
@@ -234,5 +238,9 @@ def extractEdgesInBoxesFeature(gameState, features):
         for y in range(grid.getHeight()):
             box = grid.getBox(x, y)
             edgeCount = box.edgeCount()
-            features.setdefault("boxes with %d edges" % edgeCount, 0)
-            features["boxes with %d edges" % edgeCount] += 1
+            if edgeCount <= 3:
+                features.setdefault("boxes with %d edges" % edgeCount, 0)
+                features["boxes with %d edges" % edgeCount] += 1
+            if edgeCount == 4:
+                features.setdefault("boxes owned by %d" % box.getOwner(), 0)
+                features["boxes owned by %d" % box.getOwner()] += 1
