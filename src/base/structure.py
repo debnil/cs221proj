@@ -146,6 +146,12 @@ class Grid():
     def removeEdge(self, x, y, edgeType):
         self.__modifyEdge(x, y, edgeType, False)
 
+    def getWidth(self):
+        return self.width_
+
+    def getHeight(self):
+        return self.height_
+
     # Adds a box and returns the number of boxes that are made by
     # adding this edge
     def addEdge(self, x, y, edgeType, player):

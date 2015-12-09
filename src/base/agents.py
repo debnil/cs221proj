@@ -4,6 +4,7 @@ import structure
 import move
 import operator
 import pdb
+import copy
 from move import Move
 from transpositionTable import TranspositionTable
 
@@ -84,13 +85,13 @@ class MinimaxAgent(Agent):
     def getAction(self, gameState):
         def V_opt(gameState, depth, alpha, beta): # Alpha-beta pruning
             if gameState.isEnd():
-                return self.evalFn_(self.player_, gameState), None, True
+                return self.evalFn_(self, gameState), None, True
             elif (depth == 0):
-                return self.evalFn_(self.player_, gameState), None, True
+                return self.evalFn_(self, gameState), None, True
             elif (gameState.getTurn() == self.player_): # Agent's turn
                 V = float("-inf"), None, True
                 moveSet = self.__getOrderedValidMoves(gameState, depth)
-                currScore = self.evalFn_(self.player_, gameState)
+                currScore = self.evalFn_(self, gameState)
                 for move in moveSet:
                     # TODO: Make this score agnostic
                     cacheKey = (gameState, depth, move)
@@ -112,7 +113,7 @@ class MinimaxAgent(Agent):
             else: # Opponent's turn
                 V = float("inf"), None, True
                 moveSet = self.__getOrderedValidMoves(gameState, depth)
-                currScore = self.evalFn_(self.player_, gameState)
+                currScore = self.evalFn_(self, gameState)
                 for move in moveSet:
                     successor = gameState.generateSuccessor(move)
                     cacheKey = (gameState, depth, move)
@@ -159,6 +160,87 @@ class MinimaxAgent(Agent):
                     self.cache_.updateTable(move, self.cache_.value(move) - 1)
         self.currGameMoves_ = []
 
-def basicEval(player, gameState):
-    return gameState.getScore() * player # Positive if player is winning
+def basicEval(agent, gameState):
+    return gameState.getScore() * agent.player_ # Positive if player is winning
 
+class TDLearningAgent(MinimaxAgent):
+    def __init__(self, depth, player, featureExtractor, verbose = 0):
+        MinimaxAgent.__init__(self, TDLearningAgent.TDEval, depth, player, verbose)
+        self.weights_ = {}
+        self.featureExtractor_ = featureExtractor
+        self.NUM_TRIALS_PER_SIMULATION = 1
+        self.REGULARIZATION = 0.9
+        self.STEP_SIZE = 0.01
+        self.DISCOUNT = 1
+
+    def TDEval(agent, gameState):
+        for i in range(agent.NUM_TRIALS_PER_SIMULATION):
+            #print "%d%% finished simulating." % (i*10)
+            agent.__simulate(copy.deepcopy(gameState))
+
+        #print "Updated weights: ", agent.weights_
+        return agent.getTDScore(agent.featureExtractor_(gameState))
+        #return util.dotProduct(agent.weights_, agent.featureExtractor_(gameState))
+
+        return agent.player_ * gameState.getScore()
+
+    def getTDScore(self, features):
+        return util.dotProduct(self.weights_, features)
+
+    def __updateWeights(self, currFeatures, nextFeatures, reward):
+        # TODO: Fix this
+        for feature in currFeatures:
+            self.weights_.setdefault(feature, 0)
+        for feature in nextFeatures:
+            self.weights_.setdefault(feature, 0)
+        for feature in currFeatures:
+            self.weights_[feature] -= \
+                    self.STEP_SIZE*(self.getTDScore(currFeatures) - \
+                    (reward + self.DISCOUNT*self.getTDScore(nextFeatures)) + self.REGULARIZATION*self.weights_[feature])\
+                    * currFeatures[feature]
+        self.weights_["boxes owned by 1"] = -1
+        self.weights_["boxes owned by 2"] = 1
+    
+    # Simulates one game starting from an original game state to completion
+    # and updates the weights appropriately
+    def __simulate(self, originalState):
+        state = originalState
+        currFeatures = self.featureExtractor_(state)
+        while not state.isEnd():
+            move = self.__TDGetAction(state)
+            reward = state.getReward(move) * state.getTurn() * self.player_ 
+            state.makeMove(move) 
+            nextFeatures = self.featureExtractor_(state)
+            self.__updateWeights(currFeatures, nextFeatures, reward)
+            currFeatures = nextFeatures
+
+    # Mock up policy for usage in TD Learning
+    def __TDGetAction(self, gameState):
+        chainMoves = gameState.getChainMoves()
+        movesNotLeadingToCapture = gameState.getMovesWithoutCaptures()
+        allMoves = gameState.getValidMoves()
+        if len(chainMoves) > 0:
+            moves = chainMoves
+        elif len(movesNotLeadingToCapture) > 0:
+            moves = movesNotLeadingToCapture
+        else:
+            moves = allMoves
+        return random.choice(list(moves))
+
+def defaultFeatureExtractor(gameState):
+    features = {}
+    extractEdgesInBoxesFeature(gameState, features)
+    return features
+
+def extractEdgesInBoxesFeature(gameState, features):
+    grid = gameState.getGrid()
+    for x in range(grid.getWidth()):
+        for y in range(grid.getHeight()):
+            box = grid.getBox(x, y)
+            edgeCount = box.edgeCount()
+            if edgeCount <= 3:
+                features.setdefault("boxes with %d edges" % edgeCount, 0)
+                features["boxes with %d edges" % edgeCount] += 1
+            if edgeCount == 4:
+                features.setdefault("boxes owned by %d" % box.getOwner(), 0)
+                features["boxes owned by %d" % box.getOwner()] += 1
