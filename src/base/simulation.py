@@ -8,11 +8,12 @@ agentOne = agents.MinimaxAgent(evaluationFn = agents.basicEval, \
                                   depth = 2, \
                                   player = 1, \
                                   verbose = 2)
-agentTwo = agents.MinimaxAgent(evaluationFn = agents.basicEval, \
-                                  depth = 1, \
+'''agentTwo = agents.MinimaxAgent(evaluationFn = agents.basicEval, \
+                                  depth = 3, \
                                   player = -1, \
-                                  verbose = 2)
-game = dotsAndBoxes.DotBoxGame(5, 5, agentOne, agentTwo, verbose = 3)
+                                  verbose = 2)'''
+agentTwo = agents.HumanAgent(1)
+game = dotsAndBoxes.DotBoxGame(3, 3, agentOne, agentTwo, verbose = 3)
 if len(sys.argv) > 1:
     load = True
     fileName = sys.argv[1]
