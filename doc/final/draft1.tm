@@ -174,7 +174,22 @@
   best move for this position. <underline|Explain why this helps a-b
   pruning.>
 
-  \ 
+  <underline|Put learning part here.>
+
+  In addition to general optimizations, we have also implemented
+  game-specific improvements. First, there are a couple chain structures that
+  we can take advantage of displayed in Figure 1 in Appendix. The chain
+  labeled A is called a half-opened chain, since it is open only at one end.
+  With half open chains, there are only two possible optimal moves -- to
+  either complete each box in the chain or to complete all but two boxes,
+  leaving the two boxes incomplete for the next player to take in order to
+  maintain control over the game. The chain labeled B is called a closed
+  chain. With closed chains, there are again only two possible optimal move
+  sequences. One possible move sequence is to again complete all of the
+  boxes. The other possible move sequence is to complete all but four boxes,
+  sacrificing those to the opponent to maintain control. In our evaluation
+  metric, this second case appears rarely, since it is rarely optimal to
+  sacrifice four boxes on a 4x3 grid.
 
   <section|Old Progress for Reference>
 

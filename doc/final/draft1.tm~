@@ -174,7 +174,10 @@
   best move for this position. <underline|Explain why this helps a-b
   pruning.>
 
-  \ 
+  <underline|Put learning part here.>
+
+  In addition to general optimizations, we have also implemented
+  game-specific\ 
 
   <section|Old Progress for Reference>
 
