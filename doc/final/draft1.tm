@@ -1,30 +1,10 @@
-<TeXmacs|1.99.1>
+<TeXmacs|1.99.2>
 
 <style|generic>
 
 <\body>
   <doc-data|<doc-title|Dots and Boxes>|<doc-author|<author-data|<author-name|Debnil
   Sur & Evan Liu>>>>
-
-  \;
-
-  Alpha-beta
-
-  Transposition tables
-
-  Chaining
-
-  Learning feature -- loses, updates good and bad features
-
-  TD learning
-
-  \;
-
-  TD learning -- should improve lots
-
-  Mediate between game and dabble
-
-  \;
 
   <section|Introduction & Motivation>
 
@@ -56,140 +36,148 @@
   <math|Succ<around*|(|s,a|)>>, a resulting state from choosing action
   <math|a> in state <math|s>; <math|IsEnd<around*|(|s|)>>, whether <math|s>
   is an end state representing the end of the game;
-  <math|Utility<around*|(|s|)>>, the agent's utility for an end state
-  <math|s>; and finally, <math|Player<around*|(|s|)>>, the player who plays
-  at a state <math|s>. By definition, this game has two players; furthermore,
-  as this is a zero-sum game, the sum of both players' utilities must be
-  zero.\ 
+  <math|Utility<around*|(|s|)>>, the agent's utility for a state <math|s>;
+  and finally, <math|Player<around*|(|s|)>>, the player who plays at a state
+  <math|s>. By definition, this game has two players; furthermore, as this is
+  a zero-sum game, the sum of both players' utilities must be zero.\ 
 
-  Let us now define each of these parameters for this game. The players for
+  For our model, we define these parameters as following: the players for
   this game are ``agent,'' our game-playing AI, and ``opp,'' the opponent
   game-player. Each state <math|s> contains the current edges on the grid,
-  each player's score, and whose turn it is. A key realization for this state
-  definition is that it does not matter which box has been scored by which
-  player, just eac player's absolute score. Therefore, to decide the next
-  move, we simply need to store the edges drawn so far and the score of each
-  player for the game-playing agent and opponent. The actions at state
-  <math|s>, or <math|Actions<around*|(|s|)>>, contain the possible edges that
-  <math|Player<around*|(|s|)>> can draw. <math|IsEnd<around*|(|s|)>> checks
-  if <math|s> has no possible actions. <math|Utility<around*|(|s|)>> is only
-  defined if <math|IsEnd<around*|(|s|)>> and will be <math|+\<infty\>> if the
-  agent wins, <math|0> if a draw, and <math|-\<infty\>> if the opponent wins.
-  Finally, <math|Player<around*|(|s|)>> will either be the agent or the
-  opponent, and it represents the player who is playing at state <math|s>.
-  \ This satisfies the basic requirements of a two-player zero-sum game. We
-  can also view this game as a system. The input is an empty playing board
-  (with mutually agreed upon dimensions <math|m> and <math|n>), and the
-  output is a fully connected board with a final score, winner, and loser.\ 
+  each player's score, and whose turn it is. The actions at state <math|s>,
+  or <math|Actions<around*|(|s|)>>, contain the possible edges that
+  <math|Player<around*|(|s|)>> can draw. <math|IsEnd<around*|(|s|)>> is true
+  if <math|s> has all possible edges drawn. <math|Utility<around*|(|s|)>> is
+  defined for a particular agent to be the number of boxes that the agent has
+  drawn minus the number of boxes that the opponent has drawn. In an end
+  state, an agent has won if its utility is positive, otherwise the opponent
+  has won. Finally, <math|Player<around*|(|s|)>> will either be the agent or
+  the opponent, and it represents the player who is playing at state
+  <math|s>. \ This satisfies the basic requirements of a two-player zero-sum
+  game. We evaluate our agent against another game-playing agent written by
+  JP Grossman.
 
-  To measure our algorithm's efficiency, we will check its performance
-  against three classes of metrics. The first, a purely random agent, just
-  arbitrarily draws edges. A human can beat this agent, so we expect even a
-  rudimentary AI to perform excellently. The second is a human agent. While
-  able to think strategically, a human does not have the ability to look
-  ahead that a game-playing agent does. As such, we expect our AI agent, with
-  some look-ahead, to consistently defeat a human. The final is playing
-  against another game-playing agent, namely Dabble. Though successful, it
-  does not utilize the minimax/TD learning approach, so we will iterate upon
-  our approach until we can defeat this game. If we cannot, then it seems to
-  indicate that the approach Dabble utilizes is preferable to ours for
-  navigating this particular game's solutions.\ 
+  Notably, the Sprague-Grundy Theorem effectively solves many two-player
+  zero-sum games similar to Dots and Boxes [1]. The important distinction in
+  the case of Dots and Boxes is that the winner of Dots and Boxes is not
+  decided by who makes the last move, but rather, who has the most boxes at
+  the end of the game. Because of this, the Sprague-Grundy Theorem does not
+  apply to Dots and Boxes, and the game is not solved for grids larger than
+  5x5.
 
   <section|Approach>
 
-  Before applying any of the variety of techniques from AI, we built the
-  infrastructure for the program. This entailed the creation of a
-  dots-and-boxes game in Python, which is playable through a command-line
-  interface. The three-pronged approach to testing also necessitated the
-  creation of several internal agents in the system. First, a purely random
-  agent observes the sequence of edges on the board and arbitrarily draws an
-  edge. Second, a human agent necessitated the creation of a two-player
-  option, where both players play via the command line. Finally, we attempted
-  to interface with the source code of Dabble via the Python/C API. Due to
-  the difficulty of interfacing directly, we instead utilized a parallel
-  approach of playing the same game on both programs and interfacing moves
-  through each game's respective command-line interface.
+  We developed the following infrastructure to allow us to sanity-check our
+  progress. First, we developed a random agent who would randomly select an
+  edge from the set of possible moves and draw that edge. We expected any
+  agent that we would write to always win against the random agent. Next, we
+  created a human agent, that would allow us to input moves manually to the
+  game via command line, allowing us to match our AI against humans and
+  Dabble.
 
-  Measuring the performance of our approach also requires the identification
-  of a baseline and oracle, the lower and upper bound on performance. The
-  baseline for performance will be playing our AI against a random player. A
-  random agent plays without any strategic consideration; it is equally
-  likely to pick any of the remaining edges. Even a rudimentary AI, with some
-  look-ahead in the huge amount of potential states, should be able to
-  handily defeat a player without any strategy. Therefore, defeating a random
-  agent in the vast majority of plays out of a reasonable sample size should
-  be trivial for a well-designed artificial intelligence agent. Moreover, an
-  inability to do so signifies major issues in our approach. Thus, it serves
-  as a suitable benchmark. On the other hand, for any game, the oracle is
-  naturally perfect play. In this case, this entails effectively traversing
-  the search space to find optimal play at any given position. At lower
-  dimensions (<math|4\<times\>5> and below), the game is solved,
-  demonstrating perfect play's feasibility. Thus, though it is the logical
-  oracle, we are also aware that it's fully attainable at the dimensions we
-  are studying. For that reason, the goal of our project will be to find a
-  method consistently more successful than those of a current game-playing
-  agent. This will indicate that even though the game may be solved, our
-  method is preferable.\ 
+  We defined a baseline and an oracle in order to get a rough sense of the
+  problem at hand, giving us an upper bound and a lower bound on expected
+  performance of our AI. The baseline is defined to be an average human
+  player. In this case, Debnil played 20 games against Dabble on a 3x3 grid,
+  10 as the first player and 10 as the second player. Debnil lost all of
+  these games, surprisingly, giving us a 0/20 as the baseline. We expect that
+  any AI written should at least perform better than an average human,
+  although expert humans have been known to outplay Dabble [2].
 
-  Our approach employs a variety of methods within the game-playing
-  literature to improve game-playing for dots and boxes. This can be broadly
-  segmented into two parts: first, establishing a general strategy to play
-  the game, and second, learning a better strategy through playing the game.
-  Note that in a zero-sum game, the opponent plays in an adversarial manner.
-  Her goal is to maximize her utility, which trades off with the agent's. As
-  a result, we will take a minimax approach to choosing the next move,
-  whereby we assume the adversary will take the step that minimizes our
-  utility and therefore choose the step which returns the maximum of these
-  minimal values. Now, we must learn the best game-playing policy in all.
-  Traditionally, this is done through temporal difference, or TD, learning.
-  In this approach, Monte Carlo-generated data is used to learn weights
-  corresponding to an evaluation function. The agent can then quickly compute
-  the best potential action at each state; it can also be used in alpha-beta
-  pruning to ensure that we only search feasible parts of the game space.\ 
+  We defined the oracle to be a third game-playing agent known as PRsBoxes
+  written by Paul Stevens. This agent utilizes several extremely game
+  specific techniques that allows it to analyze positions far more
+  effectively than Dabble, which uses general Artificial Intelligence
+  techniques. In this paper, we seek to achieve the best results using
+  primarily general Artificial Intelligence techniques, so we expect
+  utilization of Dots and Boxes specific techniques to perform better than
+  our AI. We choose to use only general techniques for to restrict the scope
+  of our project, although we may use more specific techniques in the future.
+  PRsBoxes defeated Dabble 44 to 16, giving us an upperbound of a 73.3% win
+  rate [3].
 
-  However, the massive size of the state space has made this computationally
-  intractable in previous studies at higher dimensions [1]. Because of
-  limitations on our computational power and the large state space at even
-  lower dimensions, we cannot conduct the necessary amount of Monte Carlo
-  simulations to generate evaluation functions and prune accordingly. In lieu
-  of this, we establish two key facets for an alpha-beta pruning approach.
-  First, we create a hard-coded heuristic for pruning: if a move would draw
-  the third edge in a box (thus letting the player complete a box on the
-  following turn), that move is avoided. Due to look-ahead, moves that would
-  make third edges more likely are pruned from the search space. This move is
-  the only way the opponent can complete a box before the agent; therefore,
-  substantially reducing its occurrence in the search tree significantly
-  improves performance.\ 
+  We employ the Minimax algorithm as the basis of our approach. We chose the
+  Minimax algorithm over Monte-Carlo Tree Search for several reasons,
+  although the choice may appear counter-intuitive at first. Minimax is known
+  to be better suited for precise and tactical games, whereas Monte-Carlo
+  Tree Search is better at more strategic games, where individual moves
+  matter less [4]. Monte-Carlo Tree Search is notably a particularly good
+  choice for games that have huge branching factors. Dots and Boxes is a game
+  that branches significantly, but the inability of Monte-Carlo Tree Search
+  to perform as well tactically, forced us to choose the Minimax algorithm.
+  The Minimax algorithm traverses the game tree as follows. It expects that
+  its opponent makes the optimal moves, and chooses the move that yields the
+  highest score given that the opponent moves optimally.
 
-  Another key optimization for evaluation is the use of a transposition
-  table. In many games, including dots and boxes, it is possible to reach a
-  given position in multiple ways, called transpotitions. After <math|n>
-  moves, the upper limit on the possible transpositions is
-  <math|<around*|(|n!|)><rsup|2>>. Generally, game-playing programs enable
-  depth-first search, which does not track previously analyzed positions and
-  therefore looks through multiple parts of the tree that lead to the same
-  position. To avoid redundant search, transposition tables are used. This
-  caches previously analyzed positions to avoid redundant computations. Each
-  entry stores the position, search-depth, best value in the subtree, and the
-  best move for this position. <underline|Explain why this helps a-b
-  pruning.>
+  Since Minimax in general requires full search of the tree, we employ
+  Alpha-Beta pruning to make the problem more tractable. Alpha-Beta pruning
+  allows us to prune out branches that are known to be sub-optimal by keeping
+  track of the current best and worst possible scores. Alpha-Beta pruning can
+  potentially prune out all but the best branches if the best moves are
+  examined first. We use the follow move heuristic in order to attempt to
+  prune the most branches. Moves that do not complete a third edge, and hence
+  don't allow the opponent to create a box are considered first. Barker and
+  Korf have shown this simple ordering heuristic to be very effective [1].
 
-  <underline|Put learning part here.>
+  We also employ Transposition Tables to further decrease the amount of
+  computation required to make moves. Transposition Tables take advantage of
+  the fact that many positions may be reached in different ways and stores
+  the evaluation of that position, so that if it is reached again in some
+  other move ordering, the value of the position does not need to be
+  re-calculated. This method is particularly useful for Dots and Boxes as the
+  Transposition Tables in Dots and Boxes requires only the score and the
+  configuration of the edges, and not who owns each box. Hence, we can
+  collapse a lot of states into one Transposition Table entry.
+  Experimentally, we have found Transposition Tables to decrease computation
+  time by up to 100x. We evict from the Transposition Table based on which
+  entries are least frequently used. More specifically, each entry of the
+  Transposition Table stores the score of a position based on the depth of
+  evaluation and the position.
 
-  In addition to general optimizations, we have also implemented
-  game-specific improvements. First, there are a couple chain structures that
-  we can take advantage of displayed in Figure 1 in Appendix. The chain
-  labeled A is called a half-opened chain, since it is open only at one end.
-  With half open chains, there are only two possible optimal moves -- to
-  either complete each box in the chain or to complete all but two boxes,
-  leaving the two boxes incomplete for the next player to take in order to
-  maintain control over the game. The chain labeled B is called a closed
-  chain. With closed chains, there are again only two possible optimal move
-  sequences. One possible move sequence is to again complete all of the
-  boxes. The other possible move sequence is to complete all but four boxes,
-  sacrificing those to the opponent to maintain control. In our evaluation
-  metric, this second case appears rarely, since it is rarely optimal to
-  sacrifice four boxes on a 4x3 grid.
+  Finally, we also implemented several Reinforcement Learning aspects to our
+  agent. We implemented a simple mechanism that updates an agent's
+  Transposition Table based on losses. If the agent loses, it will subtract 1
+  from the evaluation of every entry of the Transposition Table associated
+  with the moves that it makes. This discourages the agent from playing the
+  exact same moves again, which is a risk of the heuristic ordering of the
+  moves for Alpha-Beta pruning. In a direct comparison between a version of
+  our agent that used this reinforcement learning aspect vs our agent that
+  did not use this reinforcement learning aspect, the version that did use
+  the reinforcement learning won about 55% of the games, a slight
+  improvement.
+
+  We also implemented TD-Learning as our evaluation function in Minimax,
+  instead of the basic evaluation function that we were originally using,
+  which only returned the score of the position based on number of boxes. The
+  main idea is that over time, the agent learns weights for certain features
+  and assigns values to positions based on those weights and features.
+  However, we encountered a problem with our approach in that our usage of
+  TD-Learning is not computationally feasible within our current framework,
+  as it took far too long for the agent to evaluate a position. This is due
+  to several factors. First, we wrote our agent in Python, which is well
+  known not to be the highest performing language, over others such as C++.
+  Second, there are a few implementation quirks, that slow down positional
+  evaluation that we used in order to rapidly prototype our ideas. In the
+  future, we intend to change these and expect TD-Learning to significantly
+  impact our AI's strength.
+
+  Finally, in addition to all of the above general game playing techniques,
+  we implemented one game-specific improvement taking advantage of the
+  structure of chains in Dots and Boxes. There are several possible chain
+  structures that arise in Dots and Boxes, displayed in Figure 1 in the
+  Appendix. The chain labeled A is called a half-opened chain, since it is
+  open only at one end. With half open chains, there are only two possible
+  optimal moves -- to either complete each box in the chain or to complete
+  all but two boxes, leaving the two boxes incomplete for the next player to
+  take in order to maintain control over the game. The chain labeled B is
+  called a closed chain. With closed chains, there are again only two
+  possible optimal move sequences. One possible move sequence is to again
+  complete all of the boxes. The other possible move sequence is to complete
+  all but four boxes, sacrificing those to the opponent to maintain control.
+
+  We take advantage of these chain structures by massively pruning the game
+  tree when these structures arise, by only considering the possible optimal
+  moves.
 
   <section|Old Progress for Reference>
 
@@ -357,10 +345,16 @@
 
   [1] Barker, J. K., & Korf, R. E. (2012, July). Solving Dots-And-Boxes.
   In<nbsp><with|font-shape|italic|AAAI>.
-</body>
 
-<initial|<\collection>
-</collection>>
+  [2] Wilson, D. 2010. Dots-and-boxes analysis index.\ 
+
+  http://homepages.cae.wisc.edu/\<sim\>dwilson/boxes/.
+
+  [3] Roberts, P. 2010. Prsboxes. http://www.dianneandpaul.net/ PRsBoxes/
+
+  [4] Grossman, J. P. 2010. Dabble. http://www.mathstat.dal.ca/\<sim\>jpg/
+  dabble/
+</body>
 
 <\references>
   <\collection>
