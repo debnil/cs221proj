@@ -5,7 +5,7 @@ import sys
 
 #agentOne = agents.HumanAgent(1)
 agentOne = agents.MinimaxAgent(evaluationFn = agents.basicEval, \
-                                  depth = 2, \
+                                  depth = 3, \
                                   player = 1, \
                                   verbose = 2)
 '''agentTwo = agents.MinimaxAgent(evaluationFn = agents.basicEval, \

@@ -3,8 +3,22 @@
 <style|generic>
 
 <\body>
-  <doc-data|<doc-title|Dots and Boxes>|<doc-author|<author-data|<author-name|Debnil
-  Sur & Evan Liu>>>>
+  <doc-data|<doc-title|Search- and Learning-Based Game Playing for Dots and
+  Boxes>|<doc-author|<author-data|<author-name|Evan Liu & Debnil Sur>>>>
+
+  <abstract-data|<\abstract>
+    Dots-and-Boxes, a popular children's game, also has deep mathematical
+    properties that make it amenable to a general game-playing approach. In
+    this paper, we implement a game-playing agent primarily based upon search
+    heuristics, with basic learning. We compare its performance to Dabble, an
+    existing agent based upon game-playing techniques and using TD learning.
+    This faciliates a comparison of search-based and learning-based
+    approaches to the game. We find that a learning-based approach is
+    substantially better when playing second but almost comparable to our
+    advanced search-oriented agent when first. This thus provides insight
+    into the comparative efficacy of search- and learning-based techniques as
+    well as optimal side-based strategy in Dots and Boxes.\ 
+  </abstract>>
 
   <section|Introduction & Motivation>
 
@@ -54,8 +68,13 @@
   has won. Finally, <math|Player<around*|(|s|)>> will either be the agent or
   the opponent, and it represents the player who is playing at state
   <math|s>. \ This satisfies the basic requirements of a two-player zero-sum
-  game. We evaluate our agent against another game-playing agent written by
-  JP Grossman.
+  game. We evaluate our agent against Dabble, another game-playing agent
+  written by JP Grossman. While it utilizes rudimentary domain knowledge, the
+  bulk of its performance is based upon game-playing techniques. It has
+  experienced great success against human players, as it was used to
+  accomplish a top-15 global rating in the popular Yahoo! Dots adaptation of
+  Dots and Boxes [1]. It thus serves as an effective metric of evaluation for
+  our approach.
 
   Notably, the Sprague-Grundy Theorem effectively solves many two-player
   zero-sum games similar to Dots and Boxes [1]. The important distinction in
@@ -201,16 +220,17 @@
   Specifically, we will examine the first two moves; a sample opening
   sequence of the game is shown in Fig. 2 in the Appendix. Here, both player
   1 and player 2 are minimax agents operating with a lookahead of 2 levels.
-  As the heuristic for evalulation will be even for most initial moves, the
-  temporary evaluation function will return 0 for games that can result in
-  wins and negative for moves that have resulted in past losses.
-  Consequently, player 1 draws an edge at random from the edges with score 0.
-  Similarly, Player 2 looks 2 levels deep and sees a score of 0 for effective
-  opening actions. Therefore, she also draws an edge at random from these
-  edges. This also holds at future levels, in which the general principle of
-  minimax will further prune the search graph as more positions are strongly
-  desirable than others. This example illustrates how each agent applies that
-  technique to drawing its initial edges.
+  As the heuristic for evalulation will be equal for all initial moves, the
+  temporary evaluation function will return 0 for all games. Consequently,
+  player 1 draws an edge at random from the edges with score 0. Similarly,
+  Player 2 looks 2 levels deep and sees a score of 0 for effective opening
+  actions. Therefore, she also draws an edge at random from these edges. At
+  future levels, the agents will also utilize the basic ordering heuristic
+  explained above, in which they avoid drawing the third edge in any box
+  unless absolutely necessary. However, at both beginning and later stages,
+  the general principle of minimax will further prune the search graph as
+  more positions are strongly desirable than others. This example illustrates
+  how each agent applies that technique to drawing its initial edges.
 
   <section|Data and Experiments>
 
@@ -252,30 +272,107 @@
 
   On a 4 by 4 board, our algorithm was able to win 100% of games against a
   random agent and 100% against a human agent. Against Dabble (with the
-  settings adjusted as explained above), we won 25% of games.\ 
+  settings adjusted as explained above), we won 25% of games. Due to the time
+  required to manually interface with Dabble effectively, 20 games were
+  played against each agent. The specific winning percentage of our agent
+  against each type of player is seen in the table below.
 
-  Put breakup and specifics into nice table!
+  <tabular*|<tformat|<table|<row|<cell|<with|font-series|bold|>>>|<row|<cell|<with|font-series|bold|Our
+  Agent First>>>|<row|<cell|<with|font-series|bold|Our Agent
+  Second>>>>>><tabular*|<tformat|<table|<row|<cell|<with|font-series|bold|vs
+  Random>>>|<row|<cell|100%>>|<row|<cell|100%>>>>><tabular|<tformat|<table|<row|<cell|<with|font-series|bold|vs
+  Human>>>|<row|<cell|100%>>|<row|<cell|100%>>>>><tabular|<tformat|<table|<row|<cell|<with|font-series|bold|vs
+  Dabble>>>|<row|<cell|10%>>|<row|<cell|40%>>>>>
 
   <section|Conclusions>
 
   <subsection|Analysis>
 
-  As expected, our algorithm far-outperformed the random and human agent.
+  As expected, our algorithm far-outperformed the random and human agents.
   This demonstrates that even basic lookahead and a hardcoded heuristic
   function, as opposed to a learned evaluation function, are sufficient to
   significantly improve performance when compared to non-intelligent
   game-playing tactics. Along the same lines, our performance against Dabble
   also provides a valuable quantitative insight into the performance of
-  hardcoded learning methods versus learned metrics like traditional
-  evaluation functions.\ 
+  ordering heuristics versus learned metrics like traditional evaluation
+  functions. In particular, our agent performed far more comparably to Dabble
+  when playing second than playing first. In the context of the implemented
+  heuristic, this makes sense. We only implemented a basic ordering heuristic
+  that avoided drawing a third edge; obviously, this \ only becomes useful
+  when there are already edges on the board. When playing first, especially
+  in the opening series of turns, this heuristic will not be used. Thus, the
+  opening of the game is functionally random until enough edges are drawn.
+  This explains our agent's drastic improvement in going second, as opposed
+  to going first. Along these lines, our agent's comparative performance also
+  demonstrates the strategic utility of going second in the game. Even though
+  a human player does not have the same look-ahead capability of an AI, the
+  basic ordering heuristic is still one that can be utilized to avoid letting
+  the opponent draw boxes. When initial moves are made by the adversary, the
+  space of possible moves is substantially reduced; it is far easier to
+  memorize optimal strategy, as expert human players have done in past [2];
+  and playing optimally becomes much easier.\ 
+
+  We illustrate an example of this opening strategy in the Appendix on a
+  <math|4\<times\>4> game. A sample opening sequence of the game is shown in
+  Fig. 3 in the Appendix. Here, Player 1 is our minimax agent, playing at
+  depth 3. Player 2 represents inputted moves from Dabble, being played on
+  another computer also at depth 3. As the heuristic for evalulation will be
+  equal for all initial moves, the temporary evaluation function will return
+  0 for all games. Consequently, Player 1 draws an edge at random from the
+  edges with score 0. Player 2, representing Dabble, has the advantage of a
+  learned evaluation function for each possible move. Thus, it chooses the
+  subsequent move with the highest likelihood of victory. On the other hand,
+  if Player 1 were in this situation, he would look 3 ahead to decide his
+  next move. While he would avoid drawing edges that would likely result in
+  him drawing a third edge, he would not have the full benefit that Dabble
+  has in this situation. Notice that as more edges are drawn, the ordering
+  heuristic increasingly becomes a powerful way of narrowing the search
+  space. Later in the game, it becomes comparable to learned evaluation
+  functions in choosing advantageous moves [1]. Of course, if the player is
+  significantly behind from the beginning, this late-game equivalence becomes
+  far less relevant. Along those lines, the limitations it places on
+  effective early play are illustrated by the substantially weaker
+  performance when our agent goes first, as opposed to second.\ 
+
+  Finally, although displaying a full game would be optimal, the massive
+  state space of the game makes an entire display infeasible in the space of
+  this paper. The game logs that accompany this paper provide a record of the
+  games played that constitute our data. They can be examined to see the
+  increasing efficacy of the ordering heuristic later in the game, as
+  discussed above.
 
   <subsection|Further Work>
 
-  Port to C++ for performance
+  As mentioned above, further work primarily centers upon enhancing the
+  performance of our program. This will both improve the speed of computation
+  and facilitate necessary simulations to learn an evaluation function.
+  First, we must move our Python agent into C++. Doing this will
+  significantly improve program speed and performance, as it accelerates
+  searching the state space. Second, we will run Monte Carlo simulations
+  using the optimized code to build a large data set of played games. This
+  can be used to learn evaluation functions and therefore determine
+  intermediate evaluated values for the variety of states corresponding to
+  different board formations. This approach is the same that the creator of
+  Dabble used, and by learning the evaluation function, performance should be
+  comparable to Dabble's. Finally, to improve the testing procedure, we will
+  programmatically interface our C++ version with Dabble; because both are in
+  the same language, it should be substantially easier than our previously
+  failed attempts with the Python/C API.\ 
 
-  Run Monte Carlo and learn evaluation\ 
-
-  Accurately test against Dabble -- get Python/C API working\ 
+  Apart from computational improvements, there are a few other game-based
+  optimizations that we can also add that have been detailed in other work.
+  One key improvement would be an opening book. This would hardcode optimal
+  edges to draw in the first few turns. As mentioned above, one of the
+  biggest flaws in our current strategy is opening sequences. This primarily
+  stems from the hard-coded evaluation function, so replacing that with a
+  learned function should lead the agent to choose optimal moves to start the
+  game. Another significant improvement that could significantly reduce the
+  size of the state space is analysis of symmetries. The mirror image of a
+  state is also a game with the same optimal strategy; all instances have
+  both horizontal and vertical symmetry. Storing by symmetry could reduce the
+  size of the search space by a factor of 4 [1]. Adding other game-specific
+  optimizations akin to those in Paul Stevens' implementation (referenced
+  above as an oracle) could also significantly improve performance.\ 
 
   <subsection|Takeaways>
 
@@ -284,28 +381,34 @@
   been analytically solved at lower dimensions by alternative game-playing
   techniques. As such, deeper study of it using principles from class serve
   as an interesting endeavour in game playing strategy at large. In
-  particular, our work to this point has truly emphasized the symbiotic
-  relationship of search and learning discussed in lecture. The computational
-  intractability of searching the huge state space of Dots and Boxes forced
-  us to utilize an evaluation function and even constructing one in lieu of
-  the massive requisite simulations. As a result, the performance of our
-  agent provides insight into the performance of intelligent heuristics
-  against learned functions. Further computational power will improve our
-  ability to play against Dabble.
+  particular, given the scant literature on this game, our work provides a
+  useful comparison of learning and search-based approaches to Dots and
+  Boxes. Due to computational difficulties in our implementation, we
+  implemented a series of improvements to searching, with naive learning and
+  instead focused on comparing this with learned evaluation metrics. We found
+  that when playing second, search-based heuristics can perform comparably to
+  learning techniques. This provides insight into the performance of
+  intelligent heuristics against learned functions, as well as rudimentary
+  understanding into the benefits of going first, as opposed to second, in
+  this game. Further computational power will improve our ability to play
+  against Dabble more fully, but our work represents an important step in the
+  right direction.
 
   <section|References>
 
   [1] Barker, J. K., & Korf, R. E. (2012, July). Solving Dots-And-Boxes.
   In<nbsp><with|font-shape|italic|AAAI>.
 
-  [2] Wilson, D. 2010. Dots-and-boxes analysis index.\ 
+  [2] Wilson, D. (2010). Dots-and-boxes analysis index.\ 
 
   http://homepages.cae.wisc.edu/\<sim\>dwilson/boxes/.
 
-  [3] Roberts, P. 2010. Prsboxes. http://www.dianneandpaul.net/ PRsBoxes/
+  [3] Roberts, P. (2010). Prsboxes. http://www.dianneandpaul.net/ PRsBoxes/
 
-  [4] Grossman, J. P. 2010. Dabble. http://www.mathstat.dal.ca/\<sim\>jpg/
+  [4] Grossman, J. P. (2010). Dabble. http://www.mathstat.dal.ca/\<sim\>jpg/
   dabble/
+
+  \;
 </body>
 
 <initial|<\collection>
@@ -314,16 +417,18 @@
 <\references>
   <\collection>
     <associate|auto-1|<tuple|1|1>>
-    <associate|auto-10|<tuple|4|3>>
+    <associate|auto-10|<tuple|4|4>>
     <associate|auto-11|<tuple|4.1|4>>
     <associate|auto-12|<tuple|4.2|4>>
     <associate|auto-13|<tuple|5|4>>
     <associate|auto-14|<tuple|5.1|4>>
-    <associate|auto-15|<tuple|5.2|4>>
-    <associate|auto-16|<tuple|5.3|?>>
-    <associate|auto-17|<tuple|6|?>>
+    <associate|auto-15|<tuple|5.2|5>>
+    <associate|auto-16|<tuple|5.3|6>>
+    <associate|auto-17|<tuple|6|6>>
+    <associate|auto-18|<tuple|7|?>>
+    <associate|auto-19|<tuple|7|?>>
     <associate|auto-2|<tuple|2|1>>
-    <associate|auto-3|<tuple|3|1>>
+    <associate|auto-3|<tuple|3|2>>
     <associate|auto-4|<tuple|3.1|2>>
     <associate|auto-5|<tuple|3.2|2>>
     <associate|auto-6|<tuple|3.3|2>>
@@ -368,33 +473,41 @@
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-8>>
 
+      <with|par-left|<quote|1tab>|3.6<space|2spc>Example Play
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-9>>
+
       <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|4<space|2spc>Data
       and Experiments> <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-9><vspace|0.5fn>
+      <no-break><pageref|auto-10><vspace|0.5fn>
 
       <with|par-left|<quote|1tab>|4.1<space|2spc>Experimental Design
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-10>>
+      <no-break><pageref|auto-11>>
 
       <with|par-left|<quote|1tab>|4.2<space|2spc>Results
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-11>>
+      <no-break><pageref|auto-12>>
 
       <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|5<space|2spc>Conclusions>
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-12><vspace|0.5fn>
+      <no-break><pageref|auto-13><vspace|0.5fn>
 
       <with|par-left|<quote|1tab>|5.1<space|2spc>Analysis
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-13>>
+      <no-break><pageref|auto-14>>
 
       <with|par-left|<quote|1tab>|5.2<space|2spc>Further Work
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-14>>
+      <no-break><pageref|auto-15>>
 
-      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|6<space|2spc>Old
-      Progress for Reference> <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-15><vspace|0.5fn>
+      <with|par-left|<quote|1tab>|5.3<space|2spc>Takeaways
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-16>>
+
+      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|6<space|2spc>References>
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-17><vspace|0.5fn>
     </associate>
   </collection>
 </auxiliary>
